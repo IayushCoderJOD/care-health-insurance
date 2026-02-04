@@ -2,18 +2,17 @@ import React from "react";
 import useWorkflowStore from "../store/workflowStore";
 
 const METHOD_COLORS = {
-  GET: "bg-blue-100 text-blue-800",
-  POST: "bg-green-100 text-green-800",
-  PUT: "bg-yellow-100 text-yellow-800",
-  DELETE: "bg-red-100 text-red-800",
-  PATCH: "bg-purple-100 text-purple-800",
-  HEAD: "bg-gray-100 text-gray-800",
-  OPTIONS: "bg-indigo-100 text-indigo-800",
+  GET: "text-blue-600 bg-blue-50",
+  POST: "text-green-600 bg-green-50",
+  PUT: "text-yellow-700 bg-yellow-50",
+  DELETE: "text-red-600 bg-red-50",
+  PATCH: "text-purple-600 bg-purple-50",
+  HEAD: "text-gray-600 bg-gray-50",
+  OPTIONS: "text-indigo-600 bg-indigo-50",
 };
 
 export default function ApiListPanel() {
   const endpoints = useWorkflowStore((state) => state.endpoints || []);
-  console.log("Endpoints in ApiListPanel:", endpoints);
 
   const handleDragStart = (e, endpoint) => {
     const nodeData = {
@@ -29,23 +28,21 @@ export default function ApiListPanel() {
     e.dataTransfer.setData("application/reactflow", JSON.stringify(nodeData));
   };
 
-  if (endpoints?.length === 0) {
+  if (endpoints.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-gray-500 p-6">
-        <p className="text-lg font-semibold">No API Endpoints Loaded</p>
-        <p className="text-sm mt-2">Upload an OpenAPI spec to get started</p>
+      <div className="h-full flex flex-col items-center justify-center text-gray-500 px-6">
+        <p className="text-sm font-medium">No API Endpoints</p>
+        <p className="text-xs mt-1 text-gray-400">
+          Upload an OpenAPI spec to begin
+        </p>
       </div>
     );
   }
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="p-4">
-        <h2 className="text-lg font-bold mb-4">API Endpoints</h2>
-        <p className="text-xs text-gray-500 mb-4">Drag endpoints to canvas →</p>
-
-        <div className="space-y-2">
-          {endpoints.map((endpoint) => (
+      <div className="p-2 space-y-2">
+        {endpoints.map((endpoint) => (
           <div
             key={endpoint.id}
             draggable
@@ -53,44 +50,40 @@ export default function ApiListPanel() {
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
+              if (e.key === "Enter" || e.key === " ") {
                 handleDragStart(e, endpoint);
               }
             }}
-            className="p-3 bg-white border border-gray-300 rounded-lg cursor-move hover:shadow-md hover:border-blue-400 transition group"
+            className="m-2 p-2 h-14 border border-gray-200 rounded-md bg-white cursor-move hover:border-gray-400 hover:bg-gray-50 transition flex flex-col justify-between"
           >
-              <div className="flex items-center gap-2 mb-2">
-                <span
-                  className={`px-2 py-1 text-xs font-bold rounded ${METHOD_COLORS[endpoint.method] || "bg-gray-100"}`}
-                >
-                  {endpoint.method}
-                </span>
-                <code className="text-xs font-mono flex-1 text-gray-700 truncate">
-                  {endpoint.path}
-                </code>
-              </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded ${METHOD_COLORS[endpoint.method]}`}
+              >
+                {endpoint.method}
+              </span>
 
-              {endpoint.summary && (
-                <p className="text-xs text-gray-600 mb-2">{endpoint.summary}</p>
-              )}
-
-              <div className="flex flex-wrap gap-1">
-                {endpoint.tags?.map((tag) => (
-                  <span key={tag} className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-
-              <div className="mt-2 pt-2 border-t border-gray-200 text-xs text-gray-500 space-y-1">
-                {endpoint.parameters && endpoint.parameters?.length > 0 && (
-                  <p>📋 {endpoint.parameters?.length} parameter(s)</p>
-                )}
-                {endpoint.requestBody && <p>📦 Has request body</p>}
-              </div>
+              <code className="text-xs font-mono text-gray-800 truncate">
+                {endpoint.path}
+              </code>
             </div>
-          ))}
-        </div>
+
+            {endpoint.summary ? (
+              <p className="text-xs text-gray-500 truncate">
+                {endpoint.summary}
+              </p>
+            ) : (
+              <span />
+            )}
+
+            <div className="flex items-center gap-3 text-[11px] text-gray-400">
+              {endpoint.parameters?.length > 0 && (
+                <span>{endpoint.parameters.length} params</span>
+              )}
+              {endpoint.requestBody && <span>Request body</span>}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -34,27 +34,28 @@ body {
 
 a {
   font-weight: 500;
-  color: #0066cc;
+  color: #59a0e7;
   text-decoration: inherit;
 }
 a:hover {
-  color: #0051a8;
+  color: #5f9ad8;
 }
 
 button {
   border-radius: 6px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
+  border: 1px solid white;
+  margin: 1px;
+  padding: 4px;
+  font-size: 16px;
+  font-weight: 400;
   font-family: inherit;
-  background-color: #007bff;
+  background-color: #090f16;
   color: white;
   cursor: pointer;
   transition: all 0.25s;
 }
 button:hover {
-  background-color: #0056b3;
+  background-color: #4b94e2;
 }
 button:disabled {
   opacity: 0.6;
