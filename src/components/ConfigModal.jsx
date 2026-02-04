@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import useWorkflowStore from "../store/workflowStore";
 
 export default function ConfigModal() {
+
   const editingNodeId = useWorkflowStore((state) => state.editingNodeId);
   const nodes = useWorkflowStore((state) => state.nodes);
   const updateNode = useWorkflowStore((state) => state.updateNode);
@@ -10,6 +11,7 @@ export default function ConfigModal() {
   const editingNode = nodes.find((n) => n.id === editingNodeId);
   const [activeTab, setActiveTab] = useState("headers");
 
+ 
   if (!editingNode) return null;
 
   const data = editingNode.data;
@@ -77,6 +79,7 @@ export default function ConfigModal() {
           </button>
         </div>
 
+        
         {/* Content */}
         <div className="overflow-y-auto flex-1 p-6">
           {/* Node Info */}
@@ -97,31 +100,28 @@ export default function ConfigModal() {
           <div className="flex gap-4 mb-6 border-b border-gray-300">
             <button
               onClick={() => setActiveTab("headers")}
-              className={`px-4 py-2 font-medium transition ${
-                activeTab === "headers"
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-4 py-2 font-medium transition ${activeTab === "headers"
+                ? "border-b-2 border-blue-600 text-blue-600"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Headers
             </button>
             <button
               onClick={() => setActiveTab("params")}
-              className={`px-4 py-2 font-medium transition ${
-                activeTab === "params"
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-4 py-2 font-medium transition ${activeTab === "params"
+                ? "border-b-2 border-blue-600 text-blue-600"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Query Params
             </button>
             <button
               onClick={() => setActiveTab("body")}
-              className={`px-4 py-2 font-medium transition ${
-                activeTab === "body"
-                  ? "border-b-2 border-blue-600 text-blue-600"
-                  : "text-gray-600 hover:text-gray-900"
-              }`}
+              className={`px-4 py-2 font-medium transition ${activeTab === "body"
+                ? "border-b-2 border-blue-600 text-blue-600"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
             >
               Body
             </button>

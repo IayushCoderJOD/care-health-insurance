@@ -20,11 +20,20 @@ import {
   Tab,
   Chip,
   Alert,
+  Paper,
+  Tooltip,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import HttpIcon from "@mui/icons-material/Http";
+import ApiIcon from "@mui/icons-material/Api";
+import SendIcon from "@mui/icons-material/Send";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 // Modal style
 const modalStyle = {
@@ -32,11 +41,11 @@ const modalStyle = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 650,
+  width: 700,
   maxHeight: "90vh",
   bgcolor: "background.paper",
-  borderRadius: 2,
-  boxShadow: 24,
+  borderRadius: "8px",
+  boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
   outline: "none",
   overflow: "hidden",
 };
@@ -60,92 +69,128 @@ const DUMMY_DATA = {
   headers: {
     GET: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-      "Accept": "application/json",
-      "X-API-Key": "your-api-key-here"
+      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      Accept: "application/json",
+      "X-API-Key": "your-api-key-here",
     },
     POST: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-      "Accept": "application/json",
-      "X-Request-ID": "req-12345"
+      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      Accept: "application/json",
+      "X-Request-ID": "req-12345",
     },
     PUT: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-      "If-Match": "etag-value"
+      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "If-Match": "etag-value",
     },
     DELETE: {
-      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-      "X-Confirm-Delete": "true"
-    }
+      Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+      "X-Confirm-Delete": "true",
+    },
   },
   queryParams: {
     GET: {
-      "page": 1,
-      "limit": 10,
-      "sort": "createdAt",
-      "order": "desc",
-      "search": "keyword",
-      "filter[status]": "active"
+      page: 1,
+      limit: 10,
+      sort: "createdAt",
+      order: "desc",
+      search: "keyword",
+      "filter[status]": "active",
     },
     POST: {
-      "notify": true,
-      "async": false
+      notify: true,
+      async: false,
     },
     PUT: {
-      "validate": true
+      validate: true,
     },
     DELETE: {
-      "soft": true,
-      "cascade": false
-    }
+      soft: true,
+      cascade: false,
+    },
   },
   body: {
     GET: null,
     POST: {
-      "user": {
-        "firstName": "John",
-        "lastName": "Doe",
-        "email": "john.doe@example.com",
-        "age": 30,
-        "roles": ["admin", "user"],
-        "address": {
-          "street": "123 Main St",
-          "city": "New York",
-          "zipCode": "10001"
-        }
+      user: {
+        firstName: "John",
+        lastName: "Doe",
+        email: "john.doe@example.com",
+        age: 30,
+        roles: ["admin", "user"],
+        address: {
+          street: "123 Main St",
+          city: "New York",
+          zipCode: "10001",
+        },
       },
-      "metadata": {
-        "source": "web",
-        "campaign": "summer2024"
-      }
+      metadata: {
+        source: "web",
+        campaign: "summer2024",
+      },
     },
     PUT: {
-      "id": "user-123",
-      "updates": {
-        "firstName": "Jane",
-        "email": "jane.doe@example.com",
-        "status": "verified"
+      id: "user-123",
+      updates: {
+        firstName: "Jane",
+        email: "jane.doe@example.com",
+        status: "verified",
       },
-      "updatedAt": "2024-01-15T10:30:00Z"
+      updatedAt: "2024-01-15T10:30:00Z",
     },
     PATCH: {
-      "operations": [
-        { "op": "replace", "path": "/email", "value": "new@example.com" },
-        { "op": "add", "path": "/tags/-", "value": "premium" }
-      ]
+      operations: [
+        { op: "replace", path: "/email", value: "new@example.com" },
+        { op: "add", path: "/tags/-", value: "premium" },
+      ],
     },
     DELETE: {
-      "reason": "User requested account deletion",
-      "backupRequired": true
-    }
+      reason: "User requested account deletion",
+      backupRequired: true,
+    },
+  },
+};
+
+// Camunda-style colors
+const CAMUNDA_COLORS = {
+  primary: "#0d4880", // Dark blue
+  secondary: "#52b0d8", // Light blue
+  background: "#ffffff",
+  border: "#0d4880",
+  borderHover: "#52b0d8",
+  selectedBorder: "#ff6b00", // Orange for selection
+  taskIcon: "#0d4880",
+  text: "#333333",
+  textSecondary: "#666666",
+  success: "#52b0d8",
+  handleColor: "#0d4880",
+  handleHover: "#52b0d8",
+};
+
+// Method icons mapping
+const getMethodIcon = (method) => {
+  switch (method) {
+    case "GET":
+      return <CloudDownloadIcon sx={{ fontSize: 16 }} />;
+    case "POST":
+      return <CloudUploadIcon sx={{ fontSize: 16 }} />;
+    case "PUT":
+      return <EditIcon sx={{ fontSize: 16 }} />;
+    case "PATCH":
+      return <EditIcon sx={{ fontSize: 16 }} />;
+    case "DELETE":
+      return <DeleteOutlineIcon sx={{ fontSize: 16 }} />;
+    default:
+      return <HttpIcon sx={{ fontSize: 16 }} />;
   }
 };
 
 const ApiNode = ({ id, data, selected }) => {
   // Store actions
-  const setSelectedNodeId = useWorkflowStore((state) => state.setSelectedNodeId);
+  const setSelectedNodeId = useWorkflowStore(
+    (state) => state.setSelectedNodeId
+  );
   const editingNodeId = useWorkflowStore((state) => state.editingNodeId);
   const setEditingNodeId = useWorkflowStore((state) => state.setEditingNodeId);
   const updateNode = useWorkflowStore((state) => state.updateNode);
@@ -153,6 +198,7 @@ const ApiNode = ({ id, data, selected }) => {
 
   // Local state
   const [tabValue, setTabValue] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
   const [jsonErrors, setJsonErrors] = useState({
     headers: null,
     queryParams: null,
@@ -243,7 +289,8 @@ const ApiNode = ({ id, data, selected }) => {
         dummyValue = DUMMY_DATA.headers[method] || DUMMY_DATA.headers.GET;
         break;
       case "queryParams":
-        dummyValue = DUMMY_DATA.queryParams[method] || DUMMY_DATA.queryParams.GET;
+        dummyValue =
+          DUMMY_DATA.queryParams[method] || DUMMY_DATA.queryParams.GET;
         break;
       case "body":
         dummyValue = DUMMY_DATA.body[method] ?? DUMMY_DATA.body.POST;
@@ -260,53 +307,13 @@ const ApiNode = ({ id, data, selected }) => {
     validateJson(field, jsonString);
   };
 
-  // Load all dummy data
-  const loadAllDummyData = () => {
-    const method = formData.method;
-    const headers = JSON.stringify(
-      DUMMY_DATA.headers[method] || DUMMY_DATA.headers.GET,
-      null,
-      2
-    );
-    const queryParams = JSON.stringify(
-      DUMMY_DATA.queryParams[method] || DUMMY_DATA.queryParams.GET,
-      null,
-      2
-    );
-    const body = JSON.stringify(
-      DUMMY_DATA.body[method] ?? null,
-      null,
-      2
-    );
-
-    setFormData((prev) => ({
-      ...prev,
-      headers,
-      queryParams,
-      body,
-    }));
-    setJsonErrors({ headers: null, queryParams: null, body: null });
-  };
-
   const handleSave = () => {
     try {
-      // Parse and validate JSON fields
       const parsedHeaders = JSON.parse(formData.headers || "{}");
       const parsedQueryParams = JSON.parse(formData.queryParams || "{}");
       const parsedBody = JSON.parse(formData.body || "null");
 
-      // Update node in store with ALL data
       updateNode(id, {
-        name: formData.name,
-        method: formData.method,
-        url: formData.url,
-        headers: parsedHeaders,
-        queryParams: parsedQueryParams,
-        body: parsedBody,
-      });
-
-      console.log("Node saved successfully:", {
-        id,
         name: formData.name,
         method: formData.method,
         url: formData.url,
@@ -318,7 +325,9 @@ const ApiNode = ({ id, data, selected }) => {
       handleClose();
     } catch (err) {
       console.error("Invalid JSON:", err);
-      alert("Invalid JSON in one of the fields. Please check the errors and try again.");
+      alert(
+        "Invalid JSON in one of the fields. Please check the errors and try again."
+      );
     }
   };
 
@@ -329,22 +338,16 @@ const ApiNode = ({ id, data, selected }) => {
     }
   };
 
-  // Format JSON helper
   const formatJson = (field) => {
-    try {
-      const parsed = JSON.parse(formData[field]);
-      const formatted = JSON.stringify(parsed, null, 2);
-      setFormData((prev) => ({
-        ...prev,
-        [field]: formatted,
-      }));
-      setJsonErrors((prev) => ({ ...prev, [field]: null }));
-    } catch (err) {
-      // Already invalid, error is shown
-    }
+    const parsed = JSON.parse(formData[field]);
+    const formatted = JSON.stringify(parsed, null, 2);
+    setFormData((prev) => ({
+      ...prev,
+      [field]: formatted,
+    }));
+    setJsonErrors((prev) => ({ ...prev, [field]: null }));
   };
 
-  // Count items in JSON object
   const getItemCount = (jsonString) => {
     try {
       const parsed = JSON.parse(jsonString);
@@ -358,47 +361,6 @@ const ApiNode = ({ id, data, selected }) => {
     }
   };
 
-  // Add this helper text to your ApiNode modal to show users how to use variables
-
-const VariableHelperText = () => (
-  <Paper sx={{ p: 2, mb: 2, bgcolor: "#f0f9ff", border: "1px solid #bae6fd" }}>
-    <Typography variant="subtitle2" color="primary" gutterBottom>
-      💡 Using Variables
-    </Typography>
-    <Typography variant="caption" component="div">
-      You can reference data from previous steps using these patterns:
-    </Typography>
-    <Box component="ul" sx={{ m: 0, pl: 2, "& li": { fontSize: "0.75rem" } }}>
-      <li><code>{"{{input.userId}}"}</code> - Initial workflow input</li>
-      <li><code>{"{{previousStep.data.id}}"}</code> - Previous step's output</li>
-      <li><code>{"{{variables.apiKey}}"}</code> - Global variables</li>
-    </Box>
-    <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: "block" }}>
-      Example URL: <code>https://api.example.com/users/{"{{previousStep.userId}}"}</code>
-    </Typography>
-  </Paper>
-);
-
-  // Method color mapping for Tailwind
-  const methodColors = {
-    GET: "bg-green-500",
-    POST: "bg-blue-500",
-    PUT: "bg-yellow-500",
-    PATCH: "bg-orange-500",
-    DELETE: "bg-red-500",
-  };
-
-  // Method color mapping for MUI
-  const methodColorsMUI = {
-    GET: "#22c55e",
-    POST: "#3b82f6",
-    PUT: "#eab308",
-    PATCH: "#f97316",
-    DELETE: "#ef4444",
-  };
-
-  const methodColor = methodColors[data.method] || "bg-gray-500";
-
   // Calculate counts for display
   const headerCount = getItemCount(JSON.stringify(data.headers || {}));
   const paramCount = getItemCount(JSON.stringify(data.queryParams || {}));
@@ -406,88 +368,246 @@ const VariableHelperText = () => (
 
   return (
     <>
-      {/* Node Card */}
+      {/* Camunda-Style Node Card */}
       <div
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
-        className={`px-4 py-3 shadow-lg rounded-lg bg-white border-2 min-w-[220px] cursor-pointer transition-all ${
-          selected
-            ? "border-blue-500 shadow-blue-200"
-            : "border-gray-200 hover:border-gray-300"
-        }`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        style={{
+          position: "relative",
+          width: "180px",
+          minHeight: "80px",
+          backgroundColor: CAMUNDA_COLORS.background,
+          border: `2px solid ${
+            selected
+              ? CAMUNDA_COLORS.selectedBorder
+              : isHovered
+              ? CAMUNDA_COLORS.borderHover
+              : CAMUNDA_COLORS.border
+          }`,
+          borderRadius: "10px",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+          boxShadow: selected
+            ? `0 0 0 2px ${CAMUNDA_COLORS.selectedBorder}40`
+            : isHovered
+            ? "0 4px 12px rgba(0,0,0,0.15)"
+            : "0 2px 4px rgba(0,0,0,0.1)",
+        }}
       >
-        {/* Input Handle - Left Side */}
+        {/* Input Handle - Left Side (Camunda-style circle) */}
         <Handle
           type="target"
           position={Position.Left}
           id="input"
-          className="!w-3 !h-3 !bg-gray-400 !border-2 !border-white hover:!bg-blue-500 transition-colors"
-          style={{ top: "50%" }}
+          style={{
+            width: "12px",
+            height: "12px",
+            backgroundColor: CAMUNDA_COLORS.background,
+            border: `2px solid ${CAMUNDA_COLORS.handleColor}`,
+            borderRadius: "50%",
+            left: "-7px",
+            top: "50%",
+            transform: "translateY(-50%)",
+          }}
         />
 
-        {/* Node Content */}
-        <div className="flex items-center gap-2 mb-2">
-          <span
-            className={`${methodColor} text-white text-xs font-bold px-2 py-1 rounded`}
-          >
-            {data.method}
-          </span>
-          <span className="text-sm font-medium text-gray-700 truncate flex-1">
-            {data.name || "API Node"}
-          </span>
+        {/* Task Type Icon - Top Left Corner (Camunda style) */}
+        <div
+          style={{
+            position: "absolute",
+            top: "8px",
+            left: "8px",
+            width: "24px",
+            height: "24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: CAMUNDA_COLORS.taskIcon,
+          }}
+        >
+          <ApiIcon sx={{ fontSize: 20 }} />
+        </div>
+
+        {/* Settings Icon - Top Right (visible on hover) */}
+        {isHovered && (
           <IconButton
             size="small"
             onClick={handleOpenModal}
-            sx={{
-              padding: "2px",
-              "&:hover": { backgroundColor: "rgba(0,0,0,0.04)" },
+            style={{
+              position: "absolute",
+              top: "4px",
+              right: "4px",
+              padding: "4px",
+              backgroundColor: "rgba(255,255,255,0.9)",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
             }}
           >
-            <SettingsIcon sx={{ fontSize: 16, color: "gray" }} />
+            <SettingsIcon sx={{ fontSize: 14, color: CAMUNDA_COLORS.primary }} />
           </IconButton>
+        )}
+
+        {/* Node Content */}
+        <div
+          style={{
+            padding: "36px 12px 12px 12px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "4px",
+          }}
+        >
+          {/* Method Badge */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              backgroundColor: `${CAMUNDA_COLORS.primary}15`,
+              padding: "2px 8px",
+              borderRadius: "4px",
+              color: CAMUNDA_COLORS.primary,
+              fontSize: "11px",
+              fontWeight: 600,
+              letterSpacing: "0.5px",
+            }}
+          >
+            {getMethodIcon(data.method)}
+            <span>{data.method}</span>
+          </div>
+
+          {/* Node Name */}
+          <div
+            style={{
+              fontSize: "13px",
+              fontWeight: 500,
+              color: CAMUNDA_COLORS.text,
+              textAlign: "center",
+              lineHeight: 1.3,
+              maxWidth: "100%",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {data.name || "API Task"}
+          </div>
+
+          {/* URL Preview */}
+          <Tooltip title={data.url || "/endpoint"} placement="bottom">
+            <div
+              style={{
+                fontSize: "10px",
+                color: CAMUNDA_COLORS.textSecondary,
+                textAlign: "center",
+                maxWidth: "100%",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {data.url || "/endpoint"}
+            </div>
+          </Tooltip>
+
+          {/* Data Indicators */}
+          {(headerCount > 0 || paramCount > 0 || hasBody) && (
+            <div
+              style={{
+                display: "flex",
+                gap: "4px",
+                marginTop: "4px",
+                flexWrap: "wrap",
+                justifyContent: "center",
+              }}
+            >
+              {headerCount > 0 && (
+                <span
+                  style={{
+                    fontSize: "9px",
+                    backgroundColor: `${CAMUNDA_COLORS.secondary}30`,
+                    color: CAMUNDA_COLORS.primary,
+                    padding: "1px 6px",
+                    borderRadius: "8px",
+                    fontWeight: 500,
+                  }}
+                >
+                  H:{headerCount}
+                </span>
+              )}
+              {paramCount > 0 && (
+                <span
+                  style={{
+                    fontSize: "9px",
+                    backgroundColor: `${CAMUNDA_COLORS.secondary}30`,
+                    color: CAMUNDA_COLORS.primary,
+                    padding: "1px 6px",
+                    borderRadius: "8px",
+                    fontWeight: 500,
+                  }}
+                >
+                  P:{paramCount}
+                </span>
+              )}
+              {hasBody && (
+                <span
+                  style={{
+                    fontSize: "9px",
+                    backgroundColor: `${CAMUNDA_COLORS.secondary}30`,
+                    color: CAMUNDA_COLORS.primary,
+                    padding: "1px 6px",
+                    borderRadius: "8px",
+                    fontWeight: 500,
+                  }}
+                >
+                  Body
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="text-xs text-gray-500 truncate mb-2">
-          {data.url || "/endpoint"}
-        </div>
-
-        {/* Show indicators for configured data */}
-        <div className="flex gap-1 flex-wrap">
-          {headerCount > 0 && (
-            <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
-              {headerCount} headers
-            </span>
-          )}
-          {paramCount > 0 && (
-            <span className="text-xs bg-cyan-100 text-cyan-700 px-1.5 py-0.5 rounded">
-              {paramCount} params
-            </span>
-          )}
-          {hasBody && (
-            <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
-              body
-            </span>
-          )}
-        </div>
-
-        {/* Output Handle - Right Side */}
+        {/* Output Handle - Right Side (Camunda-style circle) */}
         <Handle
           type="source"
           position={Position.Right}
           id="output"
-          className="!w-3 !h-3 !bg-gray-400 !border-2 !border-white hover:!bg-green-500 transition-colors"
-          style={{ top: "50%" }}
+          style={{
+            width: "12px",
+            height: "12px",
+            backgroundColor: CAMUNDA_COLORS.background,
+            border: `2px solid ${CAMUNDA_COLORS.handleColor}`,
+            borderRadius: "50%",
+            right: "-7px",
+            top: "50%",
+            transform: "translateY(-50%)",
+          }}
+        />
+
+        {/* Bottom marker line (Camunda task indicator) */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "0",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "40px",
+            height: "3px",
+            backgroundColor: CAMUNDA_COLORS.primary,
+            borderRadius: "2px 2px 0 0",
+          }}
         />
       </div>
 
-      {/* Configuration Modal */}
+      {/* Configuration Modal - Camunda styled */}
       <Modal
         open={isOpen}
         onClose={handleClose}
         aria-labelledby="api-node-modal-title"
       >
         <Box sx={modalStyle}>
-          {/* Header */}
+          {/* Header - Camunda blue */}
           <Box
             sx={{
               display: "flex",
@@ -495,26 +615,36 @@ const VariableHelperText = () => (
               alignItems: "center",
               px: 3,
               py: 2,
-              bgcolor: methodColorsMUI[formData.method] || methodColorsMUI.GET,
+              bgcolor: CAMUNDA_COLORS.primary,
+              borderBottom: `3px solid ${CAMUNDA_COLORS.secondary}`,
             }}
           >
-            <Box>
-              <Typography
-                id="api-node-modal-title"
-                variant="h6"
-                component="h2"
-                sx={{ color: "white", fontWeight: 600 }}
-              >
-                Configure API Node
-              </Typography>
-              <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.8)" }}>
-                Node ID: {id}
-              </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <ApiIcon sx={{ color: "white", fontSize: 28 }} />
+              <Box>
+                <Typography
+                  id="api-node-modal-title"
+                  variant="h6"
+                  component="h2"
+                  sx={{ color: "white", fontWeight: 600 }}
+                >
+                  Configure API Task
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ color: "rgba(255,255,255,0.7)" }}
+                >
+                  ID: {id}
+                </Typography>
+              </Box>
             </Box>
             <IconButton
               onClick={handleClose}
               size="small"
-              sx={{ color: "white" }}
+              sx={{
+                color: "white",
+                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+              }}
             >
               <CloseIcon />
             </IconButton>
@@ -524,56 +654,151 @@ const VariableHelperText = () => (
           <Box
             sx={{ p: 3, maxHeight: "calc(90vh - 200px)", overflowY: "auto" }}
           >
-            {/* Basic Info */}
-            <Stack spacing={3}>
-              <TextField
-                label="Node Name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                fullWidth
-                size="small"
-                placeholder="Enter a name for this node"
-              />
+            {/* Properties Panel Header */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                mb: 3,
+                bgcolor: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: 2,
+              }}
+            >
+              <Typography
+                variant="subtitle2"
+                sx={{
+                  color: CAMUNDA_COLORS.primary,
+                  fontWeight: 600,
+                  mb: 2,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                <HttpIcon sx={{ fontSize: 18 }} />
+                General
+              </Typography>
 
-              <Box sx={{ display: "flex", gap: 2 }}>
-                <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <InputLabel>Method</InputLabel>
-                  <Select
-                    name="method"
-                    value={formData.method}
-                    label="Method"
-                    onChange={handleChange}
-                  >
-                    <MenuItem value="GET">GET</MenuItem>
-                    <MenuItem value="POST">POST</MenuItem>
-                    <MenuItem value="PUT">PUT</MenuItem>
-                    <MenuItem value="PATCH">PATCH</MenuItem>
-                    <MenuItem value="DELETE">DELETE</MenuItem>
-                  </Select>
-                </FormControl>
-
+              <Stack spacing={2}>
                 <TextField
-                  label="URL / Endpoint"
-                  name="url"
-                  value={formData.url}
+                  label="Name"
+                  name="name"
+                  value={formData.name}
                   onChange={handleChange}
                   fullWidth
                   size="small"
-                  placeholder="https://api.example.com/users/{userId}"
+                  placeholder="Enter task name"
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      "&.Mui-focused fieldset": {
+                        borderColor: CAMUNDA_COLORS.primary,
+                      },
+                    },
+                    "& .MuiInputLabel-root.Mui-focused": {
+                      color: CAMUNDA_COLORS.primary,
+                    },
+                  }}
                 />
-              </Box>
 
-            </Stack>
+                <Box sx={{ display: "flex", gap: 2 }}>
+                  <FormControl size="small" sx={{ minWidth: 130 }}>
+                    <InputLabel
+                      sx={{
+                        "&.Mui-focused": { color: CAMUNDA_COLORS.primary },
+                      }}
+                    >
+                      Method
+                    </InputLabel>
+                    <Select
+                      name="method"
+                      value={formData.method}
+                      label="Method"
+                      onChange={handleChange}
+                      sx={{
+                        "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                          borderColor: CAMUNDA_COLORS.primary,
+                        },
+                      }}
+                    >
+                      <MenuItem value="GET">
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <CloudDownloadIcon sx={{ fontSize: 16 }} /> GET
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="POST">
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <CloudUploadIcon sx={{ fontSize: 16 }} /> POST
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="PUT">
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <EditIcon sx={{ fontSize: 16 }} /> PUT
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="PATCH">
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <EditIcon sx={{ fontSize: 16 }} /> PATCH
+                        </Box>
+                      </MenuItem>
+                      <MenuItem value="DELETE">
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <DeleteOutlineIcon sx={{ fontSize: 16 }} /> DELETE
+                        </Box>
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
 
-            <Divider sx={{ my: 3 }} />
+                  <TextField
+                    label="URL / Endpoint"
+                    name="url"
+                    value={formData.url}
+                    onChange={handleChange}
+                    fullWidth
+                    size="small"
+                    placeholder="https://api.example.com/users/{userId}"
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "&.Mui-focused fieldset": {
+                          borderColor: CAMUNDA_COLORS.primary,
+                        },
+                      },
+                      "& .MuiInputLabel-root.Mui-focused": {
+                        color: CAMUNDA_COLORS.primary,
+                      },
+                    }}
+                  />
+                </Box>
+              </Stack>
+            </Paper>
 
-            {/* Tabs for Headers, Params, Body */}
+            {/* Tabs - Camunda styled */}
             <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
               <Tabs
                 value={tabValue}
                 onChange={handleTabChange}
-                aria-label="API configuration tabs"
+                sx={{
+                  "& .MuiTab-root": {
+                    textTransform: "none",
+                    fontWeight: 500,
+                    "&.Mui-selected": {
+                      color: CAMUNDA_COLORS.primary,
+                    },
+                  },
+                  "& .MuiTabs-indicator": {
+                    backgroundColor: CAMUNDA_COLORS.primary,
+                  },
+                }}
               >
                 <Tab
                   label={
@@ -583,12 +808,16 @@ const VariableHelperText = () => (
                         <Chip
                           label={getItemCount(formData.headers)}
                           size="small"
-                          sx={{ height: 20, fontSize: "0.7rem" }}
+                          sx={{
+                            height: 18,
+                            fontSize: "0.7rem",
+                            bgcolor: `${CAMUNDA_COLORS.secondary}40`,
+                            color: CAMUNDA_COLORS.primary,
+                          }}
                         />
                       )}
                     </Box>
                   }
-                  id="tab-0"
                 />
                 <Tab
                   label={
@@ -598,12 +827,16 @@ const VariableHelperText = () => (
                         <Chip
                           label={getItemCount(formData.queryParams)}
                           size="small"
-                          sx={{ height: 20, fontSize: "0.7rem" }}
+                          sx={{
+                            height: 18,
+                            fontSize: "0.7rem",
+                            bgcolor: `${CAMUNDA_COLORS.secondary}40`,
+                            color: CAMUNDA_COLORS.primary,
+                          }}
                         />
                       )}
                     </Box>
                   }
-                  id="tab-1"
                 />
                 <Tab
                   label={
@@ -613,28 +846,45 @@ const VariableHelperText = () => (
                         <Chip
                           label="✓"
                           size="small"
-                          color="success"
-                          sx={{ height: 20, fontSize: "0.7rem" }}
+                          sx={{
+                            height: 18,
+                            fontSize: "0.7rem",
+                            bgcolor: `${CAMUNDA_COLORS.secondary}40`,
+                            color: CAMUNDA_COLORS.primary,
+                          }}
                         />
                       )}
                     </Box>
                   }
-                  id="tab-2"
                 />
               </Tabs>
             </Box>
 
             {/* Headers Tab */}
             <TabPanel value={tabValue} index={0}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 1,
+                }}
+              >
                 <Typography variant="caption" color="text.secondary">
                   Enter headers as JSON object
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1 }}>
-                  <Button size="small" onClick={() => formatJson("headers")}>
+                  <Button
+                    size="small"
+                    onClick={() => formatJson("headers")}
+                    sx={{ color: CAMUNDA_COLORS.primary }}
+                  >
                     Format
                   </Button>
-                  <Button size="small" onClick={() => loadDummyData("headers")}>
+                  <Button
+                    size="small"
+                    onClick={() => loadDummyData("headers")}
+                    sx={{ color: CAMUNDA_COLORS.primary }}
+                  >
                     Load Sample
                   </Button>
                 </Box>
@@ -655,22 +905,40 @@ const VariableHelperText = () => (
                 error={!!jsonErrors.headers}
                 placeholder='{"Content-Type": "application/json"}'
                 InputProps={{
-                  sx: { fontFamily: "monospace", fontSize: "0.875rem" },
+                  sx: {
+                    fontFamily: "monospace",
+                    fontSize: "0.875rem",
+                    bgcolor: "#f8fafc",
+                  },
                 }}
               />
             </TabPanel>
 
             {/* Query Params Tab */}
             <TabPanel value={tabValue} index={1}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 1,
+                }}
+              >
                 <Typography variant="caption" color="text.secondary">
                   Enter query parameters as JSON object
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1 }}>
-                  <Button size="small" onClick={() => formatJson("queryParams")}>
+                  <Button
+                    size="small"
+                    onClick={() => formatJson("queryParams")}
+                    sx={{ color: CAMUNDA_COLORS.primary }}
+                  >
                     Format
                   </Button>
-                  <Button size="small" onClick={() => loadDummyData("queryParams")}>
+                  <Button
+                    size="small"
+                    onClick={() => loadDummyData("queryParams")}
+                    sx={{ color: CAMUNDA_COLORS.primary }}
+                  >
                     Load Sample
                   </Button>
                 </Box>
@@ -691,22 +959,40 @@ const VariableHelperText = () => (
                 error={!!jsonErrors.queryParams}
                 placeholder='{"page": 1, "limit": 10}'
                 InputProps={{
-                  sx: { fontFamily: "monospace", fontSize: "0.875rem" },
+                  sx: {
+                    fontFamily: "monospace",
+                    fontSize: "0.875rem",
+                    bgcolor: "#f8fafc",
+                  },
                 }}
               />
             </TabPanel>
 
             {/* Body Tab */}
             <TabPanel value={tabValue} index={2}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  mb: 1,
+                }}
+              >
                 <Typography variant="caption" color="text.secondary">
                   Enter request body as JSON (use null for no body)
                 </Typography>
                 <Box sx={{ display: "flex", gap: 1 }}>
-                  <Button size="small" onClick={() => formatJson("body")}>
+                  <Button
+                    size="small"
+                    onClick={() => formatJson("body")}
+                    sx={{ color: CAMUNDA_COLORS.primary }}
+                  >
                     Format
                   </Button>
-                  <Button size="small" onClick={() => loadDummyData("body")}>
+                  <Button
+                    size="small"
+                    onClick={() => loadDummyData("body")}
+                    sx={{ color: CAMUNDA_COLORS.primary }}
+                  >
                     Load Sample
                   </Button>
                 </Box>
@@ -727,13 +1013,17 @@ const VariableHelperText = () => (
                 error={!!jsonErrors.body}
                 placeholder='{"name": "John", "email": "john@example.com"}'
                 InputProps={{
-                  sx: { fontFamily: "monospace", fontSize: "0.875rem" },
+                  sx: {
+                    fontFamily: "monospace",
+                    fontSize: "0.875rem",
+                    bgcolor: "#f8fafc",
+                  },
                 }}
               />
             </TabPanel>
           </Box>
 
-          {/* Footer */}
+          {/* Footer - Camunda styled */}
           <Divider />
           <Box
             sx={{
@@ -742,7 +1032,7 @@ const VariableHelperText = () => (
               alignItems: "center",
               px: 3,
               py: 2,
-              bgcolor: "grey.50",
+              bgcolor: "#f8fafc",
             }}
           >
             <Button
@@ -752,7 +1042,7 @@ const VariableHelperText = () => (
               onClick={handleDelete}
               size="small"
             >
-              Delete Node
+              Delete
             </Button>
 
             <Box sx={{ display: "flex", gap: 2 }}>
@@ -763,20 +1053,21 @@ const VariableHelperText = () => (
                 variant="contained"
                 onClick={handleSave}
                 size="small"
+                startIcon={<SendIcon />}
                 disabled={
                   !!jsonErrors.headers ||
                   !!jsonErrors.queryParams ||
                   !!jsonErrors.body
                 }
                 sx={{
-                  bgcolor: methodColorsMUI[formData.method],
+                  bgcolor: CAMUNDA_COLORS.primary,
                   "&:hover": {
-                    bgcolor: methodColorsMUI[formData.method],
-                    filter: "brightness(0.9)",
+                    bgcolor: CAMUNDA_COLORS.primary,
+                    filter: "brightness(1.1)",
                   },
                 }}
               >
-                Save Changes
+                Apply
               </Button>
             </Box>
           </Box>

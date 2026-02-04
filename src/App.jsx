@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState} from "react";
 import "./App.css";
 import ApiListPanel from "./components/ApiListPanel";
 import WorkflowCanvas from "./components/WorkflowCanvas";
@@ -7,13 +7,37 @@ import ExportButton from "./components/ExportButton";
 import useWorkflowStore from "./store/workflowStore";
 import sampleApi from "./constants/sampleApi.json";
 import { extractEndpoints } from "./utils/openApiParser";
+import { Button } from '@mui/material';
+import TagMappingModal from "./utils/TagMappingModal";
 
 let initialized = false;
 
 function App() {
   const endpoints = useWorkflowStore((state) => state.endpoints);
+  console.log("Current endpoints in store:", endpoints);
 
-  // Initialize on mount - only once
+
+     const [modalOpen, setModalOpen] = useState(false);
+  
+    // Your custom source data (Services)
+    const services = [
+      { id: "svc-1", name: "Authentication Service", category: "Core" },
+      { id: "svc-2", name: "Payment Gateway", category: "Finance" },
+      { id: "svc-3", name: "Email Service", category: "Communication" },
+      { id: "svc-4", name: "Analytics Engine", category: "Data" },
+    ];
+  
+    // Your custom target data (Endpoints/APIs)
+    const Target = [
+      { id: "ep-1", name: "User Login API", category: "Auth" },
+      { id: "ep-2", name: "Process Payment", category: "Payments" },
+      { id: "ep-3", name: "Send Notification", category: "Alerts" },
+    ];
+  
+    // Existing mappings (if any)
+    const existingMappings = [
+      { id: "map-1", sourceId: "svc-1", targetId: "ep-1" },
+    ];
   useEffect(() => {
     if (!initialized) {
       initialized = true;
@@ -48,27 +72,36 @@ function App() {
       {/* Main Content */}
       <div className="flex h-full gap-0">
         {/* Left Panel */}
-        <div className="w-80 bg-white border-r border-gray-300 overflow-hidden">
+        <div className="w-70 bg-white border-r border-gray-300 overflow-hidden">
           <ApiListPanel />
         </div>
-
         {/* Canvas - Center */}
         <div className="flex-1 relative">
           <WorkflowCanvas />
         </div>
-
-        {/* Right Panel */}
-        {/* <div className="w-96 bg-white border-l border-gray-300 overflow-hidden">
-          <ConfigPanel />
-        </div> */}
+        
       </div>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-gray-300 px-6 py-2 text-xs text-center">
-        <p>
-          💡 Tip: Drag endpoints to canvas, click on nodes to configure them in the right panel
-        </p>
-      </footer>
+      <div className="flex justify-center bg-gray-900 text-white " >
+          <Button onClick={() => setModalOpen(true)}>
+            Tag Mappings
+          </Button>
+
+          <TagMappingModal
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            sources={services}
+            targets={Target}
+            initialMappings={existingMappings}
+            sourceLabel="Services"
+            targetLabel="Endpoints"
+            title="Service to Endpoint Mapping"
+            onSave={(mappings) => {
+              console.log("Mappings:", mappings);
+              // Save to your backend or state
+            }}
+          />
+        </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import useWorkflowStore from "../store/workflowStore";
-import { workflowToYAML, downloadYAML, downloadJSON } from "../utils/yamlExporter";
+import { workflowToYAML, downloadYAML } from "../utils/yamlExporter";
 import DetailsViewerModal from "../utils/DetailsViewerModal";
 
 export default function ExportButton() {
@@ -26,14 +26,14 @@ export default function ExportButton() {
     }
   };
 
-  const handleExportJSON = () => {
-    try {
-      downloadJSON(workflow);
-      setDropdownOpen(false);
-    } catch (error) {
-      alert("Failed to export JSON: " + error.message);
-    }
-  };
+  // const handleExportJSON = () => {
+  //   try {
+  //     downloadJSON(workflow);
+  //     setDropdownOpen(false);
+  //   } catch (error) {
+  //     alert("Failed to export JSON: " + error.message);
+  //   }
+  // };
 
   const handleShowYAML = () => {
     try {
@@ -86,16 +86,17 @@ export default function ExportButton() {
           <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
             <button
               onClick={handleExportYAML}
+
               className="w-full text-left px-4 py-2 hover:bg-gray-100 transition text-sm font-medium flex items-center gap-2"
             >
               📄 Download as YAML
             </button>
-            <button
+            {/* <button
               onClick={handleExportJSON}
               className="w-full text-left px-4 py-2 hover:bg-gray-100 transition text-sm font-medium flex items-center gap-2 border-t border-gray-200"
             >
               📋 Download as JSON
-            </button>
+            </button> */}
             <button
               onClick={handleShowYAML}
               className="w-full text-left px-4 py-2 hover:bg-gray-100 transition text-sm font-medium flex items-center gap-2 border-t border-gray-200"

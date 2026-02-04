@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.1",
   "info": {
-    "title": "User Management API",
+    "title": "User Management & Services API",
     "description": "Demo OpenAPI spec for workflow builder testing",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "servers": [
     {
@@ -23,54 +23,63 @@
                 "type": "object",
                 "required": ["username", "password"],
                 "properties": {
-                  "username": {
-                    "type": "string",
-                    "example": "ayush"
-                  },
-                  "password": {
-                    "type": "string",
-                    "example": "secret123"
-                  }
+                  "username": { "type": "string", "example": "ayush" },
+                  "password": { "type": "string", "example": "secret123" }
                 }
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Login successful"
-          }
+          "200": { "description": "Login successful" }
         }
       }
     },
+
+    "/auth/logout": {
+      "post": {
+        "summary": "User Logout",
+        "description": "Invalidate user session",
+        "responses": {
+          "200": { "description": "Logout successful" }
+        }
+      }
+    },
+
+    "/auth/reset-password": {
+      "post": {
+        "summary": "Reset Password",
+        "description": "Send password reset link",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": { "type": "string", "example": "user@demo.com" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Reset link sent" }
+        }
+      }
+    },
+
     "/users": {
       "get": {
         "summary": "Get Users",
         "description": "Fetch all users",
         "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "example": 1
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "example": 10
-            }
-          }
+          { "name": "page", "in": "query", "schema": { "type": "integer", "example": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "example": 10 } }
         ],
         "responses": {
-          "200": {
-            "description": "Users fetched successfully"
-          }
+          "200": { "description": "Users fetched successfully" }
         }
       },
       "post": {
@@ -84,26 +93,19 @@
                 "type": "object",
                 "required": ["name", "email"],
                 "properties": {
-                  "name": {
-                    "type": "string",
-                    "example": "John Doe"
-                  },
-                  "email": {
-                    "type": "string",
-                    "example": "john@demo.com"
-                  }
+                  "name": { "type": "string", "example": "John Doe" },
+                  "email": { "type": "string", "example": "john@demo.com" }
                 }
               }
             }
           }
         },
         "responses": {
-          "201": {
-            "description": "User created"
-          }
+          "201": { "description": "User created" }
         }
       }
     },
+
     "/users/{id}": {
       "get": {
         "summary": "Get User By ID",
@@ -113,16 +115,109 @@
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": {
-              "type": "string",
-              "example": "123"
-            }
+            "schema": { "type": "string", "example": "123" }
           }
         ],
         "responses": {
-          "200": {
-            "description": "User fetched"
+          "200": { "description": "User fetched" }
+        }
+      }
+    },
+
+    "/notifications/send": {
+      "post": {
+        "summary": "Send Notification",
+        "description": "Send email or SMS notification",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["type", "message"],
+                "properties": {
+                  "type": { "type": "string", "example": "email" },
+                  "message": { "type": "string", "example": "Welcome to our platform!" }
+                }
+              }
+            }
           }
+        },
+        "responses": {
+          "200": { "description": "Notification sent" }
+        }
+      }
+    },
+
+    "/payments/process": {
+      "post": {
+        "summary": "Process Payment",
+        "description": "Handle user payment",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["amount", "method"],
+                "properties": {
+                  "amount": { "type": "number", "example": 499.99 },
+                  "method": { "type": "string", "example": "credit_card" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Payment successful" }
+        }
+      }
+    },
+
+    "/analytics/events": {
+      "post": {
+        "summary": "Track Event",
+        "description": "Track user activity for analytics",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["eventName"],
+                "properties": {
+                  "eventName": { "type": "string", "example": "USER_SIGNUP" },
+                  "metadata": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Event tracked" }
+        }
+      }
+    },
+
+    "/files/upload": {
+      "post": {
+        "summary": "Upload File",
+        "description": "Upload user documents or images",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "File uploaded successfully" }
         }
       }
     }

@@ -1,7 +1,7 @@
 
 import React, { useCallback, useEffect } from "react";
 import ReactFlow, {
-  MiniMap,
+  // MiniMap,
   Controls,
   Background,
   useNodesState,
@@ -12,6 +12,8 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import useWorkflowStore from "../store/workflowStore";
 import ApiNode from "./ApiNode";
+import { Button } from '@mui/material';
+import TagMappingModal from "../utils/TagMappingModal";
 
 const nodeTypes = {
   apiNode: ApiNode,
@@ -51,6 +53,7 @@ export default function WorkflowCanvas() {
     },
     [onNodesChange]
   );
+
 
   // Only update store when edges actually change from user interactions
   const handleEdgesChange = useCallback(
@@ -180,7 +183,7 @@ export default function WorkflowCanvas() {
           animated: true,
         }}
       >
-        <Background color="#aaa" gap={16} />
+        <Background color="#aaa" gap={16} backgroundVa />
         <Controls />
         {/* <MiniMap /> */}
       </ReactFlow>
