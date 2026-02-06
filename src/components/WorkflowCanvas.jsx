@@ -66,25 +66,19 @@ export default function WorkflowCanvas() {
   // Validate connection before allowing it
   const isValidConnection = useCallback(
     (connection) => {
-      const { source, target, sourceHandle, targetHandle } = connection;
+      const { source, target, targetHandle } = connection;
 
       // Prevent self-connections
       if (source === target) {
         return false;
       }
 
-      // Check if source node already has an outgoing connection from this handle
-      const sourceHasConnection = edges.some(
-        (edge) => edge.source === source && edge.sourceHandle === sourceHandle
-      );
-
       // Check if target node already has an incoming connection to this handle
       const targetHasConnection = edges.some(
         (edge) => edge.target === target && edge.targetHandle === targetHandle
       );
-
       // Only allow connection if both handles are free
-      return !sourceHasConnection && !targetHasConnection;
+      return !targetHasConnection;
     },
     [edges]
   );
@@ -183,7 +177,7 @@ export default function WorkflowCanvas() {
           animated: true,
         }}
       >
-        <Background color="#aaa" gap={16} backgroundVa />
+        <Background color="none" gap={16} />
         <Controls />
         {/* <MiniMap /> */}
       </ReactFlow>
