@@ -64,7 +64,6 @@ function TabPanel({ children, value, index, ...other }) {
   );
 }
 
-// Dummy data templates
 const DUMMY_DATA = {
   headers: {
     GET: {
@@ -152,14 +151,13 @@ const DUMMY_DATA = {
   },
 };
 
-// Camunda-style colors
 const CAMUNDA_COLORS = {
   primary: "#0d4880", // Dark blue
   secondary: "#52b0d8", // Light blue
   background: "#ffffff",
   border: "#0d4880",
   borderHover: "#52b0d8",
-  selectedBorder: "#ff6b00", // Orange for selection
+  selectedBorder: "#ff6b00",
   taskIcon: "#0d4880",
   text: "#333333",
   textSecondary: "#666666",
@@ -168,7 +166,6 @@ const CAMUNDA_COLORS = {
   handleHover: "#52b0d8",
 };
 
-// Method icons mapping
 const getMethodIcon = (method) => {
   switch (method) {
     case "GET":
@@ -187,6 +184,7 @@ const getMethodIcon = (method) => {
 };
 
 const ApiNode = ({ id, data, selected }) => {
+  console.log(  data.endpoint, data, "huheiheihi" )
   // Store actions
   const setSelectedNodeId = useWorkflowStore(
     (state) => state.setSelectedNodeId
@@ -368,7 +366,6 @@ const ApiNode = ({ id, data, selected }) => {
 
   return (
     <>
-      {/* Camunda-Style Node Card */}
       <div
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
@@ -396,7 +393,6 @@ const ApiNode = ({ id, data, selected }) => {
             : "0 2px 4px rgba(0,0,0,0.1)",
         }}
       >
-        {/* Input Handle - Left Side (Camunda-style circle) */}
         <Handle
           type="target"
           position={Position.Left}
@@ -491,11 +487,11 @@ const ApiNode = ({ id, data, selected }) => {
               whiteSpace: "nowrap",
             }}
           >
-            {data.name || "API Task"}
+            {data.id || "API Task"}
           </div>
 
           {/* URL Preview */}
-          <Tooltip title={data.url || "/endpoint"} placement="bottom">
+          <Tooltip title={data?.endpoint || "/endpoint"} placement="bottom">
             <div
               style={{
                 fontSize: "10px",
@@ -507,7 +503,7 @@ const ApiNode = ({ id, data, selected }) => {
                 whiteSpace: "nowrap",
               }}
             >
-              {data.url || "/endpoint"}
+              {data?.endpoint || "/endpoint"}
             </div>
           </Tooltip>
 
@@ -568,7 +564,6 @@ const ApiNode = ({ id, data, selected }) => {
           )}
         </div>
 
-        {/* Output Handle - Right Side (Camunda-style circle) */}
         <Handle
           type="source"
           position={Position.Right}
@@ -600,7 +595,6 @@ const ApiNode = ({ id, data, selected }) => {
         />
       </div>
 
-      {/* Configuration Modal - Camunda styled */}
       <Modal
         open={isOpen}
         onClose={handleClose}
@@ -761,8 +755,8 @@ const ApiNode = ({ id, data, selected }) => {
 
                   <TextField
                     label="URL / Endpoint"
-                    name="url"
-                    value={formData.url}
+                    name="endpoint"
+                  value={data?.endpoint}
                     onChange={handleChange}
                     fullWidth
                     size="small"
@@ -782,7 +776,6 @@ const ApiNode = ({ id, data, selected }) => {
               </Stack>
             </Paper>
 
-            {/* Tabs - Camunda styled */}
             <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
               <Tabs
                 value={tabValue}
@@ -1023,7 +1016,6 @@ const ApiNode = ({ id, data, selected }) => {
             </TabPanel>
           </Box>
 
-          {/* Footer - Camunda styled */}
           <Divider />
           <Box
             sx={{

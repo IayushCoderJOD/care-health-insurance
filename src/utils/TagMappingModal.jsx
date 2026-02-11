@@ -29,7 +29,7 @@ const modalStyle = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 1100,
+  width: "100vw",
   maxWidth: "95vw",
   maxHeight: "90vh",
   bgcolor: "background.paper",
@@ -58,7 +58,7 @@ const SAMPLE_TARGETS = [
   { id: "tgt-6", name: "Documentation", category: "Docs" },
 ];
 
-export default function TagMappingModal({ open, onClose, onSave }) {
+export default function TagMappingModal({selectedNode, open, onClose, onSave }) {
   const [mappings, setMappings] = useState([
     { id: "map-1", sourceId: "", targetId: "" },
   ]);
@@ -164,7 +164,7 @@ export default function TagMappingModal({ open, onClose, onSave }) {
             <LinkIcon sx={{ color: "#6366f1" }} />
             <Box>
               <Typography variant="h6" fontWeight={600}>
-                Tag Mapping
+                Selected {selectedNode}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 Map source tags to target labels
