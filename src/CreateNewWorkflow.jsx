@@ -64,7 +64,6 @@ const CreateNewWorkflow = () => {
   const [toggleMenu, setToggleMenu] = useState(true);
   const [apiLoaded, setApiLoaded] = useState(false);
 
-  // Load API endpoints (only once)
   useEffect(() => {
     if (!apiLoaded) {
       try {
@@ -80,23 +79,17 @@ const CreateNewWorkflow = () => {
     }
   }, [apiLoaded]);
 
-  // Handle edit mode or new workflow
   useEffect(() => {
     if (editId) {
-      // Load existing workflow
       const loaded = loadWorkflow(editId);
       if (!loaded) {
         console.warn(`Workflow ${editId} not found`);
-        // Optionally redirect or show error
       }
     } else {
-      // Reset for new workflow
       resetWorkflow();
     }
 
-    // Cleanup on unmount
     return () => {
-      // Optional: reset when leaving the page
     };
   }, [editId, loadWorkflow, resetWorkflow]);
 
@@ -107,7 +100,6 @@ const CreateNewWorkflow = () => {
   const handleSave = () => {
     const saved = saveWorkflow();
     console.log("Workflow saved:", saved);
-    // Show success message or navigate back
     alert("Workflow saved successfully!");
   };
 

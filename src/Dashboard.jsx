@@ -37,7 +37,6 @@ const theme = createTheme({
   },
 });
 
-// Sample workflow data
 const initialWorkflows = [
   { id: "WF-001", name: "User Authentication Flow", createdDate: "2024-01-15", status: "Active" },
   { id: "WF-002", name: "Payment Processing", createdDate: "2024-01-18", status: "Draft" },
@@ -61,12 +60,10 @@ function Dashboard() {
     page * pageSize + pageSize
   );
 
-  // Navigate to create NEW workflow (no ID)
   const handleCreateNew = () => {
     navigate("/create-workflow");
   };
 
-  // Navigate to EDIT existing workflow (with ID)
   const handleEdit = (id) => {
     navigate(`/create-workflow?edit=${id}`);
   };
