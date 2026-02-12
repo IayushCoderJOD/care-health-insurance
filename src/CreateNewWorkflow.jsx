@@ -63,7 +63,7 @@ const CreateNewWorkflow = () => {
 
   const [toggleMenu, setToggleMenu] = useState(true);
   const [apiLoaded, setApiLoaded] = useState(false);
-
+  console.log("setApiLoaded",setApiLoaded);
   useEffect(() => {
     if (!apiLoaded) {
       try {
@@ -72,7 +72,7 @@ const CreateNewWorkflow = () => {
           openApiSpec: sampleApi,
           endpoints: extracted,
         });
-        setApiLoaded(true);
+        
       } catch (err) {
         console.error("Failed to load sample API:", err);
       }
