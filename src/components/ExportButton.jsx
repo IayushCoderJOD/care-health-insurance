@@ -1,4 +1,19 @@
 import React, { useState } from "react";
+import {
+  Button,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+} from "@mui/material";
+import {
+  FileDownload as DownloadIcon,
+  KeyboardArrowDown as ArrowDownIcon,
+  Description as YamlIcon,
+  Visibility as ViewIcon,
+  Code as JsonIcon,
+} from "@mui/icons-material";
 import useWorkflowStore from "../store/workflowStore";
 import { workflowToYAML, downloadYAML } from "../utils/yamlExporter";
 import DetailsViewerModal from "../utils/DetailsViewerModal";
@@ -6,8 +21,11 @@ import DetailsViewerModal from "../utils/DetailsViewerModal";
 export default function ExportButton() {
   const nodes = useWorkflowStore((state) => state.nodes);
   const edges = useWorkflowStore((state) => state.edges);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   
+  // Menu state
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalData, setModalData] = useState(null);
@@ -16,24 +34,23 @@ export default function ExportButton() {
 
   const workflow = { nodes, edges };
 
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
   const handleExportYAML = () => {
     try {
       const yamlContent = workflowToYAML(workflow);
       downloadYAML(yamlContent);
-      setDropdownOpen(false);
+      handleClose();
     } catch (error) {
       alert("Failed to export YAML: " + error.message);
     }
   };
-
-  // const handleExportJSON = () => {
-  //   try {
-  //     downloadJSON(workflow);
-  //     setDropdownOpen(false);
-  //   } catch (error) {
-  //     alert("Failed to export JSON: " + error.message);
-  //   }
-  // };
 
   const handleShowYAML = () => {
     try {
@@ -42,7 +59,7 @@ export default function ExportButton() {
       setModalData(yamlContent);
       setModalType("info");
       setModalOpen(true);
-      setDropdownOpen(false);
+      handleClose();
     } catch (error) {
       alert("Failed to generate YAML: " + error.message);
     }
@@ -54,7 +71,7 @@ export default function ExportButton() {
       setModalData(workflow);
       setModalType("info");
       setModalOpen(true);
-      setDropdownOpen(false);
+      handleClose();
     } catch (error) {
       alert("Failed to generate JSON: " + error.message);
     }
@@ -66,54 +83,83 @@ export default function ExportButton() {
   };
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition flex items-center gap-2"
+    <>
+      <Button
+        variant="contained"
+        startIcon={<DownloadIcon />}
+        endIcon={<ArrowDownIcon />}
+        onClick={handleClick}
+        sx={{
+          backgroundColor: "#4caf50",
+          color: "#fff",
+          textTransform: "none",
+          fontWeight: 500,
+          px: 2,
+          "&:hover": {
+            backgroundColor: "#43a047",
+          },
+        }}
       >
-        📤 Export Workflow
-        <span className="text-xs">▼</span>
-      </button>
+        Export Workflow
+      </Button>
 
-      {dropdownOpen && (
-        <>
-          {/* Backdrop to close dropdown when clicking outside */}
-          <div
-            className="fixed inset-0 z-5"
-            onClick={() => setDropdownOpen(false)}
+      <Menu
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "right",
+        }}
+        PaperProps={{
+          sx: {
+            mt: 1,
+            minWidth: 200,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            border: "1px solid #e0e0e0",
+          },
+        }}
+      >
+        {/* Download Options */}
+        <MenuItem onClick={handleExportYAML}>
+          <ListItemIcon>
+            <YamlIcon fontSize="small" sx={{ color: "#1976d2" }} />
+          </ListItemIcon>
+          <ListItemText 
+            primary="Download as YAML" 
+            primaryTypographyProps={{ fontSize: 14 }}
           />
-          
-          <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-            <button
-              onClick={handleExportYAML}
+        </MenuItem>
 
-              className="w-full text-left px-4 py-2 hover:bg-gray-100 transition text-sm font-medium flex items-center gap-2"
-            >
-              📄 Download as YAML
-            </button>
-            {/* <button
-              onClick={handleExportJSON}
-              className="w-full text-left px-4 py-2 hover:bg-gray-100 transition text-sm font-medium flex items-center gap-2 border-t border-gray-200"
-            >
-              📋 Download as JSON
-            </button> */}
-            <button
-              onClick={handleShowYAML}
-              className="w-full text-left px-4 py-2 hover:bg-gray-100 transition text-sm font-medium flex items-center gap-2 border-t border-gray-200"
-            >
-              👀 View YAML
-            </button>
-            <button
-              onClick={handleShowJSON}
-              className="w-full text-left px-4 py-2 hover:bg-gray-100 transition text-sm font-medium flex items-center gap-2 border-t border-gray-200"
-            >
-              👁️ View JSON
-            </button>
-          </div>
-        </>
-      )}
+        <Divider sx={{ my: 0.5 }} />
 
-      {/* Modal - Rendered in JSX, controlled by state */}
+        {/* View Options */}
+        <MenuItem onClick={handleShowYAML}>
+          <ListItemIcon>
+            <ViewIcon fontSize="small" sx={{ color: "#666" }} />
+          </ListItemIcon>
+          <ListItemText 
+            primary="View YAML" 
+            primaryTypographyProps={{ fontSize: 14 }}
+          />
+        </MenuItem>
+
+        <MenuItem onClick={handleShowJSON}>
+          <ListItemIcon>
+            <JsonIcon fontSize="small" sx={{ color: "#666" }} />
+          </ListItemIcon>
+          <ListItemText 
+            primary="View JSON" 
+            primaryTypographyProps={{ fontSize: 14 }}
+          />
+        </MenuItem>
+      </Menu>
+
+      {/* Modal */}
       <DetailsViewerModal
         open={modalOpen}
         onClose={handleCloseModal}
@@ -122,6 +168,6 @@ export default function ExportButton() {
         type={modalType}
         message="Preview of your workflow configuration"
       />
-    </div>
+    </>
   );
 }

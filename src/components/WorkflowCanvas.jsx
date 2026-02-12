@@ -1,7 +1,5 @@
-
 import React, { useCallback, useEffect } from "react";
 import ReactFlow, {
-  // MiniMap,
   Controls,
   Background,
   useNodesState,
@@ -12,8 +10,8 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import useWorkflowStore from "../store/workflowStore";
 import ApiNode from "./ApiNode";
-import { Button } from '@mui/material';
-import TagMappingModal from "../utils/TagMappingModal";
+import { Box, Typography } from "@mui/material";
+import { AccountTree as WorkflowIcon } from "@mui/icons-material";
 
 const nodeTypes = {
   apiNode: ApiNode,
@@ -22,40 +20,47 @@ const nodeTypes = {
 export default function WorkflowCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
   const storeNodes = useWorkflowStore((state) => state.nodes);
   const storeEdges = useWorkflowStore((state) => state.edges);
   const selectedNodeId = useWorkflowStore((state) => state.selectedNodeId);
+  const isEditMode = useWorkflowStore((state) => state.isEditMode);
   const setStoreNodes = useWorkflowStore((state) => state.setNodes);
   const setStoreEdges = useWorkflowStore((state) => state.setEdges);
 
   // Sync store nodes to canvas when store updates
   useEffect(() => {
-    if (storeNodes.length > 0) {
-      const nodesWithSelection = storeNodes.map((node) => ({
-        ...node,
-        selected: node.id === selectedNodeId,
-      }));
-      setNodes(nodesWithSelection);
-    }
+    const nodesWithSelection = storeNodes.map((node) => ({
+      ...node,
+      selected: node.id === selectedNodeId,
+    }));
+    setNodes(nodesWithSelection);
   }, [storeNodes, selectedNodeId, setNodes]);
 
   // Sync store edges to canvas
   useEffect(() => {
-    if (storeEdges.length > 0) {
-      setEdges(storeEdges);
-    }
+    setEdges(storeEdges);
   }, [storeEdges, setEdges]);
 
-  // Only update store when nodes actually change from user interactions
   const handleNodesChange = useCallback(
     (changes) => {
       onNodesChange(changes);
+
+      // Update store with position changes
+      const positionChanges = changes.filter(
+        (change) => change.type === "position" && change.dragging === false
+      );
+
+      if (positionChanges.length > 0) {
+        setNodes((currentNodes) => {
+          setStoreNodes(currentNodes);
+          return currentNodes;
+        });
+      }
     },
-    [onNodesChange]
+    [onNodesChange, setNodes, setStoreNodes]
   );
 
-
-  // Only update store when edges actually change from user interactions
   const handleEdgesChange = useCallback(
     (changes) => {
       onEdgesChange(changes);
@@ -63,35 +68,12 @@ export default function WorkflowCanvas() {
     [onEdgesChange]
   );
 
-  // Validate connection before allowing it
-  const isValidConnection = useCallback(
-    (connection) => {
-      const { source, target, sourceHandle, targetHandle } = connection;
-
-      // Prevent self-connections
-      if (source === target) {
-        return false;
-      }
-
-      // Check if source node already has an outgoing connection from this handle
-      const sourceHasConnection = edges.some(
-        (edge) => edge.source === source && edge.sourceHandle === sourceHandle
-      );
-
-      // Check if target node already has an incoming connection to this handle
-      const targetHasConnection = edges.some(
-        (edge) => edge.target === target && edge.targetHandle === targetHandle
-      );
-
-      // Only allow connection if both handles are free
-      return !sourceHasConnection && !targetHasConnection;
-    },
-    [edges]
-  );
+  const isValidConnection = useCallback(() => {
+    return true;
+  }, []);
 
   const onConnect = useCallback(
     (connection) => {
-      // Double-check validation before adding
       if (!isValidConnection(connection)) {
         console.warn("Connection rejected: handle already connected");
         return;
@@ -100,7 +82,7 @@ export default function WorkflowCanvas() {
       const newEdge = {
         ...connection,
         id: `edge-${Date.now()}`,
-        type: "smoothstep", // or 'default', 'straight', 'step'
+        type: "smoothstep",
         animated: true,
         markerEnd: {
           type: MarkerType.ArrowClosed,
@@ -165,8 +147,39 @@ export default function WorkflowCanvas() {
     event.dataTransfer.dropEffect = "move";
   }, []);
 
+  // Empty state component
+  const EmptyState = () => (
+    <Box
+      sx={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        textAlign: "center",
+        zIndex: 1,
+        pointerEvents: "none",
+      }}
+    >
+      <WorkflowIcon sx={{ fontSize: 80, color: "#ccc", mb: 2 }} />
+      <Typography variant="h6" sx={{ color: "#999", mb: 1 }}>
+        {isEditMode ? "Loading workflow..." : "No nodes yet"}
+      </Typography>
+      <Typography sx={{ color: "#bbb", fontSize: 14 }}>
+        Drag and drop API endpoints from the left panel to get started
+      </Typography>
+    </Box>
+  );
+
   return (
-    <div className="w-full h-full bg-gray-50">
+    <Box
+      sx={{
+        width: "100%",
+        height: "100%",
+        backgroundColor: "#fafafa",
+        position: "relative",
+      }}
+    >
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -183,10 +196,15 @@ export default function WorkflowCanvas() {
           animated: true,
         }}
       >
-        <Background color="#aaa" gap={16} backgroundVa />
-        <Controls />
-        {/* <MiniMap /> */}
+        <Background color="#ddd" gap={16} />
+        <Controls
+          style={{
+            backgroundColor: "white",
+            border: "1px solid #e0e0e0",
+            borderRadius: 4,
+          }}
+        />
       </ReactFlow>
-    </div>
+    </Box>
   );
 }
