@@ -1,7 +1,7 @@
-import React, { memo, useState, useEffect } from "react";
+import React, { memo, useState, useEffect, useRef } from "react";
 import { Handle, Position } from "reactflow";
 import useWorkflowStore from "../store/workflowStore";
-
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
 // MUI Imports
 import {
   Modal,
@@ -22,11 +22,13 @@ import {
   Alert,
   Paper,
   Tooltip,
+  ClickAwayListener,
+  Popper,
+  Fade,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SettingsIcon from "@mui/icons-material/Settings";
 import DeleteIcon from "@mui/icons-material/Delete";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import HttpIcon from "@mui/icons-material/Http";
 import ApiIcon from "@mui/icons-material/Api";
 import SendIcon from "@mui/icons-material/Send";
@@ -34,6 +36,7 @@ import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import TuneIcon from "@mui/icons-material/Tune";
 
 // Modal style
 const modalStyle = {
@@ -152,8 +155,8 @@ const DUMMY_DATA = {
 };
 
 const CAMUNDA_COLORS = {
-  primary: "#0d4880", // Dark blue
-  secondary: "#52b0d8", // Light blue
+  primary: "#0d4880",
+  secondary: "#52b0d8",
   background: "#ffffff",
   border: "#0d4880",
   borderHover: "#52b0d8",
@@ -183,8 +186,144 @@ const getMethodIcon = (method) => {
   }
 };
 
+// Custom Context Menu Component (BPM Style - Attached to Node)
+const NodeContextMenu = ({ open, onClose, onConfigureNode, onTagMapping, anchorEl }) => {
+  if (!open || !anchorEl) return null;
+
+  return (
+    <ClickAwayListener onClickAway={onClose}>
+      <Popper
+        open={open}
+        anchorEl={anchorEl}
+        placement="left-start"
+        transition
+        modifiers={[
+          {
+            name: 'offset',
+            options: {
+              offset: [0, 8],
+            },
+          },
+        ]}
+        style={{ zIndex: 1000 }}
+      >
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={200}>
+            <Paper
+              elevation={3}
+              sx={{
+                minWidth: 180,
+                borderRadius: "8px",
+                overflow: "hidden",
+                border: "1px solid #e0e0e0",
+                backgroundColor: "#ffffff",
+              }}
+            >
+              {/* Menu Header */}
+              <Box
+                sx={{
+                  bgcolor: "#f5f5f5",
+                  px: 1.5,
+                  py: 0.75,
+                  borderBottom: "1px solid #e0e0e0",
+                }}
+              >
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: "#666",
+                    fontWeight: 500,
+                    fontSize: "10px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Node Actions
+                </Typography>
+              </Box>
+
+              {/* Menu Items */}
+              <Box sx={{ py: 0.5 }}>
+                {/* Configure Node Option */}
+                <Box
+                  onClick={onConfigureNode}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    px: 2,
+                    py: 1.25,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    "&:hover": {
+                      backgroundColor: "#f0f7ff",
+                    },
+                  }}
+                >
+                  <TuneIcon
+                    sx={{
+                      fontSize: 20,
+                      color: CAMUNDA_COLORS.primary,
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      color: "#333",
+                    }}
+                  >
+                    Configure Node
+                  </Typography>
+                </Box>
+
+                {/* Divider */}
+                <Divider sx={{ my: 0.5 }} />
+
+                {/* Tag Mapping Option */}
+                <Box
+                  onClick={onTagMapping}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    px: 2,
+                    py: 1.25,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    "&:hover": {
+                      backgroundColor: "#f0f7ff",
+                    },
+                  }}
+                >
+                  <AccountTreeIcon
+                    sx={{
+                      fontSize: 20,
+                      color: CAMUNDA_COLORS.primary,
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      fontSize: "14px",
+                      fontWeight: 500,
+                      color: "#333",
+                    }}
+                  >
+                    Tag Mapping
+                  </Typography>
+                </Box>
+              </Box>
+            </Paper>
+          </Fade>
+        )}
+      </Popper>
+    </ClickAwayListener>
+  );
+};
+
 const ApiNode = ({ id, data, selected }) => {
-  console.log(  data.endpoint, data, "huheiheihi" )
+  console.log(data.endpoint, data, "huheiheihi");
+
   // Store actions
   const setSelectedNodeId = useWorkflowStore(
     (state) => state.setSelectedNodeId
@@ -193,6 +332,9 @@ const ApiNode = ({ id, data, selected }) => {
   const setEditingNodeId = useWorkflowStore((state) => state.setEditingNodeId);
   const updateNode = useWorkflowStore((state) => state.updateNode);
   const deleteNode = useWorkflowStore((state) => state.deleteNode);
+
+  // Refs
+  const nodeRef = useRef(null);
 
   // Local state
   const [tabValue, setTabValue] = useState(0);
@@ -210,6 +352,13 @@ const ApiNode = ({ id, data, selected }) => {
     queryParams: "{}",
     body: "null",
   });
+
+  // Context Menu state
+  const [contextMenuOpen, setContextMenuOpen] = useState(false);
+  const [contextMenuAnchor, setContextMenuAnchor] = useState(null);
+
+  // Tag Mapping Modal state
+  const [isTagMappingOpen, setIsTagMappingOpen] = useState(false);
 
   // Check if this node's modal should be open
   const isOpen = editingNodeId === id;
@@ -229,6 +378,13 @@ const ApiNode = ({ id, data, selected }) => {
       setJsonErrors({ headers: null, queryParams: null, body: null });
     }
   }, [isOpen, data]);
+
+  // Close context menu when node is deselected or mouse leaves
+  useEffect(() => {
+    if (!isHovered && !contextMenuOpen) {
+      setContextMenuOpen(false);
+    }
+  }, [isHovered]);
 
   // Validate JSON in real-time
   const validateJson = (field, value) => {
@@ -251,9 +407,29 @@ const ApiNode = ({ id, data, selected }) => {
     setEditingNodeId(id);
   };
 
-  const handleOpenModal = (e) => {
+  // Context Menu handlers
+  const handleSettingsClick = (e) => {
     e.stopPropagation();
+    setContextMenuAnchor(nodeRef.current);
+    setContextMenuOpen(true);
+  };
+
+  const handleContextMenuClose = () => {
+    setContextMenuOpen(false);
+  };
+
+  const handleConfigureNode = () => {
+    handleContextMenuClose();
     setEditingNodeId(id);
+  };
+
+  const handleTagMapping = () => {
+    handleContextMenuClose();
+    setIsTagMappingOpen(true);
+  };
+
+  const handleTagMappingClose = () => {
+    setIsTagMappingOpen(false);
   };
 
   const handleClose = () => {
@@ -267,7 +443,6 @@ const ApiNode = ({ id, data, selected }) => {
       [name]: value,
     }));
 
-    // Validate JSON fields in real-time
     if (["headers", "queryParams", "body"].includes(name)) {
       validateJson(name, value);
     }
@@ -277,7 +452,6 @@ const ApiNode = ({ id, data, selected }) => {
     setTabValue(newValue);
   };
 
-  // Load dummy data for current method
   const loadDummyData = (field) => {
     const method = formData.method;
     let dummyValue;
@@ -337,13 +511,17 @@ const ApiNode = ({ id, data, selected }) => {
   };
 
   const formatJson = (field) => {
-    const parsed = JSON.parse(formData[field]);
-    const formatted = JSON.stringify(parsed, null, 2);
-    setFormData((prev) => ({
-      ...prev,
-      [field]: formatted,
-    }));
-    setJsonErrors((prev) => ({ ...prev, [field]: null }));
+    try {
+      const parsed = JSON.parse(formData[field]);
+      const formatted = JSON.stringify(parsed, null, 2);
+      setFormData((prev) => ({
+        ...prev,
+        [field]: formatted,
+      }));
+      setJsonErrors((prev) => ({ ...prev, [field]: null }));
+    } catch (err) {
+      console.error("Format error:", err);
+    }
   };
 
   const getItemCount = (jsonString) => {
@@ -359,7 +537,6 @@ const ApiNode = ({ id, data, selected }) => {
     }
   };
 
-  // Calculate counts for display
   const headerCount = getItemCount(JSON.stringify(data.headers || {}));
   const paramCount = getItemCount(JSON.stringify(data.queryParams || {}));
   const hasBody = data.body !== null && data.body !== undefined;
@@ -367,10 +544,19 @@ const ApiNode = ({ id, data, selected }) => {
   return (
     <>
       <div
+        ref={nodeRef}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          // Delay closing context menu to allow clicking on it
+          setTimeout(() => {
+            if (!contextMenuOpen) {
+              setContextMenuOpen(false);
+            }
+          }, 100);
+        }}
         style={{
           position: "relative",
           width: "180px",
@@ -409,7 +595,7 @@ const ApiNode = ({ id, data, selected }) => {
           }}
         />
 
-        {/* Task Type Icon - Top Left Corner (Camunda style) */}
+        {/* Task Type Icon - Top Left Corner */}
         <div
           style={{
             position: "absolute",
@@ -428,20 +614,35 @@ const ApiNode = ({ id, data, selected }) => {
 
         {/* Settings Icon - Top Right (visible on hover) */}
         {isHovered && (
-          <IconButton
-            size="small"
-            onClick={handleOpenModal}
+          <div
             style={{
               position: "absolute",
-              top: "4px",
-              right: "4px",
-              padding: "4px",
-              backgroundColor: "rgba(255,255,255,0.9)",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+              top: "6px",
+              right: "6px",
+              background: "rgba(255,255,255,0.95)",
+              padding: "2px",
+              borderRadius: "6px",
+              boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
             }}
           >
-            <SettingsIcon sx={{ fontSize: 14, color: CAMUNDA_COLORS.primary }} />
-          </IconButton>
+            <Tooltip title="Node Options" placement="top">
+              <IconButton
+                size="small"
+                onClick={handleSettingsClick}
+                sx={{
+                  p: "4px",
+                  backgroundColor: contextMenuOpen ? `${CAMUNDA_COLORS.primary}15` : "transparent",
+                  "&:hover": {
+                    backgroundColor: `${CAMUNDA_COLORS.primary}15`,
+                  },
+                }}
+              >
+                <SettingsIcon
+                  sx={{ fontSize: 18, color: CAMUNDA_COLORS.primary }}
+                />
+              </IconButton>
+            </Tooltip>
+          </div>
         )}
 
         {/* Node Content */}
@@ -580,7 +781,7 @@ const ApiNode = ({ id, data, selected }) => {
           }}
         />
 
-        {/* Bottom marker line (Camunda task indicator) */}
+        {/* Bottom marker line */}
         <div
           style={{
             position: "absolute",
@@ -595,6 +796,123 @@ const ApiNode = ({ id, data, selected }) => {
         />
       </div>
 
+      {/* Context Menu - Attached to Node (BPM Style) */}
+      <NodeContextMenu
+        open={contextMenuOpen}
+        anchorEl={contextMenuAnchor}
+        onClose={handleContextMenuClose}
+        onConfigureNode={handleConfigureNode}
+        onTagMapping={handleTagMapping}
+      />
+
+      {/* Tag Mapping Modal */}
+      <Modal
+        open={isTagMappingOpen}
+        onClose={handleTagMappingClose}
+        aria-labelledby="tag-mapping-modal-title"
+      >
+        <Box
+          sx={{
+            ...modalStyle,
+            width: 600,
+          }}
+        >
+          {/* Header */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              px: 3,
+              py: 2,
+              bgcolor: CAMUNDA_COLORS.primary,
+              borderBottom: `3px solid ${CAMUNDA_COLORS.secondary}`,
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <AccountTreeIcon sx={{ color: "white", fontSize: 28 }} />
+              <Box>
+                <Typography
+                  id="tag-mapping-modal-title"
+                  variant="h6"
+                  component="h2"
+                  sx={{ color: "white", fontWeight: 600 }}
+                >
+                  Tag Mapping
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ color: "rgba(255,255,255,0.7)" }}
+                >
+                  Node: {data.name || data.id || id}
+                </Typography>
+              </Box>
+            </Box>
+            <IconButton
+              onClick={handleTagMappingClose}
+              size="small"
+              sx={{
+                color: "white",
+                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          {/* Body - Replace with your Tag Mapping Component */}
+          <Box sx={{ p: 3, minHeight: 300 }}>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              Configure tag mappings for this API node
+            </Alert>
+
+            {/* 
+              TODO: Add your Tag Mapping Component here
+              Example: <TagMappingComponent nodeId={id} data={data} onClose={handleTagMappingClose} />
+            */}
+
+            <Typography variant="body2" color="text.secondary">
+              Your Tag Mapping component will be rendered here.
+            </Typography>
+          </Box>
+
+          {/* Footer */}
+          <Divider />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 2,
+              px: 3,
+              py: 2,
+              bgcolor: "#f8fafc",
+            }}
+          >
+            <Button
+              variant="outlined"
+              onClick={handleTagMappingClose}
+              size="small"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                bgcolor: CAMUNDA_COLORS.primary,
+                "&:hover": {
+                  bgcolor: CAMUNDA_COLORS.primary,
+                  filter: "brightness(1.1)",
+                },
+              }}
+            >
+              Save Mappings
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Configuration Modal */}
       <Modal
         open={isOpen}
         onClose={handleClose}
@@ -756,7 +1074,7 @@ const ApiNode = ({ id, data, selected }) => {
                   <TextField
                     label="URL / Endpoint"
                     name="endpoint"
-                  value={data?.endpoint}
+                    value={data?.endpoint}
                     onChange={handleChange}
                     fullWidth
                     size="small"

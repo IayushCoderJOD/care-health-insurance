@@ -58,7 +58,6 @@ const CreateNewWorkflow = () => {
   const workflowId = useWorkflowStore((state) => state.workflowId);
   const loadWorkflow = useWorkflowStore((state) => state.loadWorkflow);
   const resetWorkflow = useWorkflowStore((state) => state.resetWorkflow);
-  const setWorkflowName = useWorkflowStore((state) => state.setWorkflowName);
   const saveWorkflow = useWorkflowStore((state) => state.saveWorkflow);
 
   const [toggleMenu, setToggleMenu] = useState(true);
@@ -149,7 +148,8 @@ const CreateNewWorkflow = () => {
                   <>
                     <TextField
                       value={workflowName}
-                      onChange={(e) => setWorkflowName(e.target.value)}
+                      // onChange={(e) => setWorkflowName(e.target.value)}
+                      
                       variant="standard"
                       placeholder="Workflow Name"
                       InputProps={{
@@ -184,6 +184,7 @@ const CreateNewWorkflow = () => {
                         backgroundColor: "#ff9800",
                         color: "white",
                         fontSize: "12px",
+                        
                       }}
                     />
                   </>
