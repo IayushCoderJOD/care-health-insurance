@@ -280,23 +280,7 @@ function Dashboard() {
         );
       },
     },
-    {
-      field: "status",
-      headerName: "Status",
-      minWidth: 110,
-      renderCell: (params) => {
-        const value = params?.value || params?.row?.status;
-        if (!value) return <Typography>N/A</Typography>;
-        return (
-          <Chip
-            label={value}
-            color={getStatusColor(value)}
-            size="small"
-            variant="outlined"
-          />
-        );
-      },
-    },
+    
     {
       field: "createdBy",
       headerName: "Created By",
