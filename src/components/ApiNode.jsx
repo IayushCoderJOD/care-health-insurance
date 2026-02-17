@@ -813,62 +813,7 @@ const ApiNode = ({ id, data, selected }) => {
         onTagMapping={handleTagMapping}
       />
     
-      {/* Tag Mapping Modal */}
-      <Modal
-        open={isTagMappingOpen}
-        onClose={handleTagMappingClose}
-        aria-labelledby="tag-mapping-modal-title"
-      >
-        <Box
-          sx={{
-            ...modalStyle,
-            width: 600,
-          }}
-        >
-          {/* Header */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              px: 3,
-              py: 2,
-              bgcolor: CAMUNDA_COLORS.primary,
-              borderBottom: `3px solid ${CAMUNDA_COLORS.secondary}`,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <AccountTreeIcon sx={{ color: "white", fontSize: 28 }} />
-              <Box>
-                <Typography
-                  id="tag-mapping-modal-title"
-                  variant="h6"
-                  component="h2"
-                  sx={{ color: "white", fontWeight: 600 }}
-                >
-                  Tag Mapping
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ color: "rgba(255,255,255,0.7)" }}
-                >
-                  Node: {data.name || data.id || id}
-                </Typography>
-              </Box>
-            </Box>
-            <IconButton
-              onClick={handleTagMappingClose}
-              size="small"
-              sx={{
-                color: "white",
-                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </Box>
-
-          <TagMappingModal
+     <TagMappingModal
           selectedNode={selectedNode}
           open={isTagMappingOpen}
           onClose={handleTagMappingClose}
@@ -882,41 +827,6 @@ const ApiNode = ({ id, data, selected }) => {
             console.log("Mappings:", mappings);
           }}
         />
-          {/* Footer */}
-          <Divider />
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "flex-end",
-              gap: 2,
-              px: 3,
-              py: 2,
-              bgcolor: "#f8fafc",
-            }}
-          >
-            <Button
-              variant="outlined"
-              onClick={handleTagMappingClose}
-              size="small"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="contained"
-              size="small"
-              sx={{
-                bgcolor: CAMUNDA_COLORS.primary,
-                "&:hover": {
-                  bgcolor: CAMUNDA_COLORS.primary,
-                  filter: "brightness(1.1)",
-                },
-              }}
-            >
-              Save Mappings
-            </Button>
-          </Box>
-        </Box>
-      </Modal>
 
       {/* Configuration Modal */}
       <Modal
