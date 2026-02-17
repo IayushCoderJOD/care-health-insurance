@@ -222,6 +222,7 @@ function Dashboard() {
         return "default";
     }
   };
+  console.log(getStatusColor("Active")); // Should return "success"
 
   const getLifecycleColor = (lifecycle) => {
     return LIFECYCLE_STAGES[lifecycle]?.color || "default";
@@ -417,10 +418,7 @@ function Dashboard() {
               <Typography variant="h5" color="black" fontWeight="500">
                 My Workflows
               </Typography>
-              <Typography variant="body2" color="#666" sx={{ mt: 0.5 }}>
-                Manage workflow lifecycles: Planning → Development → Testing →
-                Production
-              </Typography>
+              
             </Box>
             <Button
               variant="contained"

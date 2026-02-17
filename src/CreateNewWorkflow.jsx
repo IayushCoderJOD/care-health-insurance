@@ -27,7 +27,7 @@ import useWorkflowStore from "./store/workflowStore";
 import sampleApi from "./constants/sampleApi.json";
 import { extractEndpoints } from "./utils/openApiParser";
 import TagMappingModal from "./utils/TagMappingModal";
-import { services, Target } from "./constants/constants";
+import {  Target } from "./constants/constants";
 
 const theme = createTheme({
   palette: {
@@ -59,6 +59,8 @@ const CreateNewWorkflow = () => {
   const loadWorkflow = useWorkflowStore((state) => state.loadWorkflow);
   const resetWorkflow = useWorkflowStore((state) => state.resetWorkflow);
   const saveWorkflow = useWorkflowStore((state) => state.saveWorkflow);
+
+  console.log("Workflow Name:", loadWorkflow);
 
   const [toggleMenu, setToggleMenu] = useState(true);
   const [apiLoaded, setApiLoaded] = useState(false);
@@ -266,54 +268,11 @@ const CreateNewWorkflow = () => {
 
 export default CreateNewWorkflow;
 
-const HeaderDetails = ({ endpoints, selectedNode }) => {
-  const [modalOpen, setModalOpen] = useState(false);
-
-  const existingMappings = [
-    { id: "map-1", sourceId: "svc-1", targetId: "ep-1" },
-  ];
+const HeaderDetails = ({ endpoints }) => {
 
   return (
     <>
-      <Button
-        disabled={!selectedNode}
-        onClick={() => setModalOpen(true)}
-        variant="outlined"
-        sx={{
-          color: "white",
-          borderColor: "rgba(255,255,255,0.5)",
-          textTransform: "none",
-          "&:hover": {
-            borderColor: "white",
-            backgroundColor: "rgba(255,255,255,0.1)",
-          },
-          "&:disabled": {
-            color: "rgba(255,255,255,0.3)",
-            borderColor: "rgba(255,255,255,0.2)",
-          },
-        }}
-      >
-        Tag Mappings
-      </Button>
-
       {endpoints?.length > 0 && <ExportButton />}
-
-      {selectedNode && (
-        <TagMappingModal
-          selectedNode={selectedNode}
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          sources={services}
-          targets={Target}
-          initialMappings={existingMappings}
-          sourceLabel="Services"
-          targetLabel="Endpoints"
-          title="Service to Endpoint Mapping"
-          onSave={(mappings) => {
-            console.log("Mappings:", mappings);
-          }}
-        />
-      )}
     </>
   );
 };

@@ -37,6 +37,8 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import TuneIcon from "@mui/icons-material/Tune";
+import { services, Target } from '../constants/constants';
+import TagMappingModal from '../utils/TagMappingModal';
 
 // Modal style
 const modalStyle = {
@@ -363,6 +365,12 @@ const ApiNode = ({ id, data, selected }) => {
   // Check if this node's modal should be open
   const isOpen = editingNodeId === id;
 
+  const selectedNode = useWorkflowStore((state) => state.selectedNodeId);
+
+
+  const existingMappings = [
+    { id: "map-1", sourceId: "svc-1", targetId: "ep-1" },
+  ];
   // Initialize form data when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -804,7 +812,7 @@ const ApiNode = ({ id, data, selected }) => {
         onConfigureNode={handleConfigureNode}
         onTagMapping={handleTagMapping}
       />
-
+    
       {/* Tag Mapping Modal */}
       <Modal
         open={isTagMappingOpen}
@@ -860,22 +868,20 @@ const ApiNode = ({ id, data, selected }) => {
             </IconButton>
           </Box>
 
-          {/* Body - Replace with your Tag Mapping Component */}
-          <Box sx={{ p: 3, minHeight: 300 }}>
-            <Alert severity="info" sx={{ mb: 2 }}>
-              Configure tag mappings for this API node
-            </Alert>
-
-            {/* 
-              TODO: Add your Tag Mapping Component here
-              Example: <TagMappingComponent nodeId={id} data={data} onClose={handleTagMappingClose} />
-            */}
-
-            <Typography variant="body2" color="text.secondary">
-              Your Tag Mapping component will be rendered here.
-            </Typography>
-          </Box>
-
+          <TagMappingModal
+          selectedNode={selectedNode}
+          open={isTagMappingOpen}
+          onClose={handleTagMappingClose}
+          sources={services}
+          targets={Target}
+          initialMappings={existingMappings}
+          sourceLabel="Services"
+          targetLabel="Endpoints"
+          title="Service to Endpoint Mapping"
+          onSave={(mappings) => {
+            console.log("Mappings:", mappings);
+          }}
+        />
           {/* Footer */}
           <Divider />
           <Box
