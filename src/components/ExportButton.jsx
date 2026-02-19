@@ -15,7 +15,8 @@ import {
   Code as JsonIcon,
 } from "@mui/icons-material";
 import useWorkflowStore from "../store/workflowStore";
-import { workflowToYAML, downloadYAML } from "../utils/yamlExporter";
+import { downloadYAML } from "../utils/yamlExporter";
+import { workflowToCamelYAML } from "../utils/camelYamlExporter";
 import DetailsViewerModal from "../utils/DetailsViewerModal";
 
 export default function ExportButton() {
@@ -44,7 +45,7 @@ export default function ExportButton() {
 
   const handleExportYAML = () => {
     try {
-      const yamlContent = workflowToYAML(workflow);
+      const yamlContent = workflowToCamelYAML(workflow);
       downloadYAML(yamlContent);
       handleClose();
     } catch (error) {
@@ -54,7 +55,7 @@ export default function ExportButton() {
 
   const handleShowYAML = () => {
     try {
-      const yamlContent = workflowToYAML(workflow);
+      const yamlContent = workflowToCamelYAML(workflow);
       setModalTitle("Workflow YAML");
       setModalData(yamlContent);
       setModalType("info");
