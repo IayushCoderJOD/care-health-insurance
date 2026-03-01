@@ -297,7 +297,12 @@ export const dummyWorkflows = {
           id: "node-3",
           connector: "mongodb",
           name: "Write to Events",
-          config: { database: "testdb", collection: "events", operation: "insert" },
+          config: { 
+            database: "testdb", 
+            collection: "events", 
+            operation: "insert",
+            backendUrl: "http://localhost:8080"
+          },
           headers: {},
           queryParams: {},
           pathParams: {},

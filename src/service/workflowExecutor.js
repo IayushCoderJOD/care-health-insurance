@@ -6,7 +6,7 @@
 const resolveVariables = (template, context) => {
   if (typeof template !== "string") return template;
   
-  return template.replace(/\{\{([^}]+)\}\}/g, (match, path) => {
+  return template.replaceAll(/\{\{([^}]+)\}\}/g, (match, path) => {
     const keys = path.trim().split(".");
     let value = context;
     
@@ -15,7 +15,7 @@ const resolveVariables = (template, context) => {
       value = value[key];
     }
     
-    return value !== undefined ? value : match;
+    return value === undefined || value === null ? match : value;
   });
 };
 
@@ -95,20 +95,92 @@ export const getPreviousNode = (nodeId, edges) => {
 export const executeNode = async (node, inputData, context) => {
   const { data } = node;
   
-  // if this is a connector node, perform a simple mock action (real execution
-  // would delegate to Camel or another runtime environment).  The result
-  // payload echoes the connector name, configuration, and input.
+  // Handle connector nodes (MongoDB, Kafka, Timer, etc.)
   if (data.connector) {
     const startTime = Date.now();
-    const output = {
-      connector: data.connector,
-      config: data.config || {},
-      input: inputData,
-    };
+    let output = null;
+    let status = 200;
+    let statusText = "OK";
+    let errorData = null;
+
+    try {
+      const config = data.config || {};
+      const backendUrl = config.backendUrl || "http://localhost:8080";
+
+      // MongoDB connector: handle insert and findAll operations
+      if (data.connector === "mongodb") {
+        const operation = config.operation || "findAll";
+        const collection = config.collection || "users";
+
+        if (operation === "insert") {
+          // POST to /users endpoint to insert
+          const response = await fetch(`${backendUrl}/users`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(inputData),
+          });
+          output = await response.json();
+          status = response.status;
+          statusText = response.statusText;
+        } else if (operation === "findAll") {
+          // GET from /users endpoint to retrieve all
+          const response = await fetch(`${backendUrl}/users`, {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          });
+          output = await response.json();
+          status = response.status;
+          statusText = response.statusText;
+        } else {
+          // Generic query support for other operations
+          const response = await fetch(`${backendUrl}/${collection}`, {
+            method: operation === "insert" ? "POST" : "GET",
+            headers: { "Content-Type": "application/json" },
+            ...(operation === "insert" && { body: JSON.stringify(inputData) }),
+          });
+          output = await response.json();
+          status = response.status;
+          statusText = response.statusText;
+        }
+      }
+      // Kafka connector: log/stub
+      else if (data.connector === "kafka") {
+        output = {
+          message: "Message sent to Kafka",
+          topic: config.topic || "default-topic",
+          data: inputData,
+        };
+      }
+      // Timer connector: stub
+      else if (data.connector === "timer") {
+        output = {
+          message: "Timer executed",
+          delay: config.delay || 1000,
+          timestamp: new Date().toISOString(),
+        };
+      }
+      // Default/generic connector
+      else {
+        output = {
+          connector: data.connector,
+          config,
+          input: inputData,
+        };
+      }
+    } catch (error) {
+      status = 500;
+      statusText = "Error";
+      errorData = error.message;
+      output = {
+        error: errorData,
+        connector: data.connector,
+      };
+    }
+
     const endTime = Date.now();
     return {
-      status: 200,
-      statusText: "OK",
+      status,
+      statusText,
       headers: {},
       data: output,
       timing: {

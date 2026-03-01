@@ -10,6 +10,10 @@ import {
   Button,
   IconButton,
   Tooltip,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SettingsIcon from "@mui/icons-material/Settings";
@@ -52,15 +56,21 @@ export default function ConnectorNode({ id, data, selected }) {
 
   const [isHovered, setIsHovered] = useState(false);
   const [configString, setConfigString] = useState("{}");
+  const [operation, setOperation] = useState("findAll");
+  const [backendUrl, setBackendUrl] = useState("http://localhost:8080");
 
   const isOpen = editingNodeId === id;
 
   // helper to open modal and initialize form state
   const openModal = () => {
-    setConfigString(JSON.stringify(data.config || {}, null, 2));
+    const cfg = data.config || {};
+    setConfigString(JSON.stringify(cfg, null, 2));
+    setOperation(cfg.operation || "findAll");
+    setBackendUrl(cfg.backendUrl || "http://localhost:8080");
     setFormData({ name: data.name || "" });
     setEditingNodeId(id);
   };
+
 
   const handleClick = (e) => {
     e.stopPropagation();
@@ -90,12 +100,19 @@ export default function ConnectorNode({ id, data, selected }) {
       alert("Invalid JSON configuration");
       return;
     }
+    // Add operation and backendUrl to config
+    const finalConfig = {
+      ...parsed,
+      operation,
+      backendUrl,
+    };
     updateNode(id, {
       name: formData.name,
-      config: parsed,
+      config: finalConfig,
     });
     handleClose();
   };
+
 
   // keep some local name for display
   const [formData, setFormData] = useState({ name: data.name || "" });
@@ -269,7 +286,30 @@ export default function ConnectorNode({ id, data, selected }) {
               disabled
               sx={{ mb: 2 }}
             />
-            <Typography variant="subtitle2" sx={{ mt: 2 }}>Configuration (JSON)</Typography>
+            <TextField
+              label="Backend URL"
+              value={backendUrl}
+              onChange={(e) => setBackendUrl(e.target.value)}
+              fullWidth
+              size="small"
+              sx={{ mb: 2 }}
+              placeholder="http://localhost:8080"
+            />
+            {data.connector === "mongodb" && (
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Operation</InputLabel>
+                <Select
+                  value={operation}
+                  onChange={(e) => setOperation(e.target.value)}
+                  label="Operation"
+                >
+                  <MenuItem value="findAll">Find All (GET)</MenuItem>
+                  <MenuItem value="insert">Insert (POST)</MenuItem>
+                  <MenuItem value="find">Find by Query</MenuItem>
+                </Select>
+              </FormControl>
+            )}
+            <Typography variant="subtitle2" sx={{ mt: 2 }}>Additional Config (JSON)</Typography>
             <TextField
               multiline
               rows={6}
