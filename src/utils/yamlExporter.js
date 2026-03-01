@@ -16,12 +16,15 @@ export function workflowToYAML(workflow) {
       position: node.position,
       data: {
         endpoint: node.data.endpoint,
+        connector: node.data.connector,
+        component: node.data.connector,
         method: node.data.method,
         summary: node.data.summary,
         headers: node.data.headers,
         queryParams: node.data.queryParams,
         pathParams: node.data.pathParams,
         body: node.data.body,
+        config: node.data.config,
       },
     })),
     edges: workflow.edges.map((edge) => ({

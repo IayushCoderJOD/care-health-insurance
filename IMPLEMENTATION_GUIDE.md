@@ -162,6 +162,13 @@ edges:
 
 4. **Export** the workflow to share or automate
 
+   > **Connectors:** The builder also includes non-HTTP "connector" nodes
+   > (MongoDB, Kafka, timer, etc.). These appear in a separate section of the
+   > API list when the OpenAPI spec contains an `x-connectors` declaration or
+   > when defaults are provided. Connector nodes are rendered with a purple
+   > style and have their own configuration modal (see *ConnectorNode* below).
+
+
 ## Component Details
 
 ### OpenApiUploader

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { connectors as defaultConnectors } from "../constants/constants";
 
 // Sample/dummy workflows for testing
 export const dummyWorkflows = {
@@ -288,6 +289,21 @@ export const dummyWorkflows = {
           body: null,
         },
       },
+      {
+        id: "node-3",
+        type: "connectorNode",
+        position: { x: 800, y: 100 },
+        data: {
+          id: "node-3",
+          connector: "mongodb",
+          name: "Write to Events",
+          config: { database: "testdb", collection: "events", operation: "insert" },
+          headers: {},
+          queryParams: {},
+          pathParams: {},
+          body: null,
+        },
+      },
     ],
     edges: [
       {
@@ -307,6 +323,7 @@ const useWorkflowStore = create((set, get) => ({
   // ==================
   openApiSpec: null,
   endpoints: [],
+  connectors: defaultConnectors,
 
   // ==================
   // Workflow metadata
@@ -332,6 +349,10 @@ const useWorkflowStore = create((set, get) => ({
 
   setEndpoints: (endpoints) => {
     set({ endpoints });
+  },
+
+  setConnectors: (conns) => {
+    set({ connectors: conns });
   },
 
   // ==================
@@ -504,6 +525,7 @@ const useWorkflowStore = create((set, get) => ({
     set({
       openApiSpec: null,
       endpoints: [],
+      connectors: defaultConnectors,
       workflowId: null,
       workflowName: "",
       isEditMode: false,

@@ -221,5 +221,25 @@
         }
       }
     }
-  }
+  },
+  "x-connectors": [
+    {
+      "id": "conn-mongodb",
+      "name": "MongoDB",
+      "category": "Database",
+      "component": "mongodb"
+    },
+    {
+      "id": "conn-kafka",
+      "name": "Kafka",
+      "category": "Messaging",
+      "component": "kafka"
+    },
+    {
+      "id": "conn-timer",
+      "name": "Timer/Delay",
+      "category": "Utility",
+      "component": "timer"
+    }
+  ]
 }

@@ -13,27 +13,41 @@ const METHOD_COLORS = {
 
 export default function ApiListPanel() {
   const endpoints = useWorkflowStore((state) => state.endpoints || []);
+  const connectors = useWorkflowStore((state) => state.connectors || []);
 
-  const handleDragStart = (e, endpoint) => {
-    const nodeData = {
-      endpoint: endpoint.path,
-      method: endpoint.method,
-      summary: endpoint.summary,
-      operationId: endpoint.operationId,
-      parameters: endpoint.parameters,
-      requestBody: endpoint.requestBody,
-    };
+  const handleDragStart = (e, item, isConnector = false) => {
+    // if the item is a connector, we will carry its component name so the
+    // node modal can render appropriate configuration fields.  otherwise we
+    // treat it as an API endpoint.
+    let nodeData;
+    if (isConnector) {
+      nodeData = {
+        connector: item.component,
+        name: item.name,
+        category: item.category,
+      };
+    } else {
+      nodeData = {
+        endpoint: item.path,
+        method: item.method,
+        summary: item.summary,
+        operationId: item.operationId,
+        parameters: item.parameters,
+        requestBody: item.requestBody,
+      };
+    }
 
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("application/reactflow", JSON.stringify(nodeData));
   };
 
-  if (endpoints.length === 0) {
+  // if there are no connectors *and* no endpoints, show empty state
+  if (connectors.length === 0 && endpoints.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center text-gray-500 px-6">
-        <p className="text-sm font-medium">No API Endpoints</p>
+        <p className="text-sm font-medium">No API Endpoints or Connectors</p>
         <p className="text-xs mt-1 text-gray-400">
-          Upload an OpenAPI spec to begin
+          Upload an OpenAPI spec or configure connectors to begin
         </p>
       </div>
     );
@@ -42,6 +56,34 @@ export default function ApiListPanel() {
   return (
     <div className="h-full overflow-y-auto">
       <div className="p-2 space-y-2">
+        {connectors.length > 0 && (
+          <>
+            <h4 className="px-2 text-xs font-semibold text-gray-500">
+              Connectors
+            </h4>
+            {connectors.map((conn) => (
+              <div
+                key={conn.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, conn, true)}
+                role="button"
+                tabIndex={0}
+                className="m-2 p-2 h-14 border border-gray-200 rounded-md bg-gray-50 cursor-move hover:border-gray-400 hover:bg-gray-100 transition flex flex-col justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded text-indigo-600 bg-indigo-50">
+                    {conn.category}
+                  </span>
+                  <code className="text-xs font-mono text-gray-800 truncate">
+                    {conn.name}
+                  </code>
+                </div>
+              </div>
+            ))}
+            <hr className="my-2" />
+          </>
+        )}
+
         {endpoints.map((endpoint) => (
           <div
             key={endpoint.id}

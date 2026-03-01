@@ -95,6 +95,34 @@ export const getPreviousNode = (nodeId, edges) => {
 export const executeNode = async (node, inputData, context) => {
   const { data } = node;
   
+  // if this is a connector node, perform a simple mock action (real execution
+  // would delegate to Camel or another runtime environment).  The result
+  // payload echoes the connector name, configuration, and input.
+  if (data.connector) {
+    const startTime = Date.now();
+    const output = {
+      connector: data.connector,
+      config: data.config || {},
+      input: inputData,
+    };
+    const endTime = Date.now();
+    return {
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      data: output,
+      timing: {
+        startTime,
+        endTime,
+        duration: endTime - startTime,
+      },
+      request: {
+        connector: data.connector,
+        config: data.config || {},
+      },
+    };
+  }
+
   // Build resolution context
   const resolutionContext = {
     input: inputData,

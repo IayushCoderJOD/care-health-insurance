@@ -1,4 +1,3 @@
-import SwaggerParser from "@apidevtools/swagger-parser";
 import YAML from "js-yaml";
 
 /**
@@ -66,7 +65,12 @@ export function extractEndpoints(spec) {
 
   Object.entries(spec.paths).forEach(([path, methods]) => {
     Object.entries(methods).forEach(([method, operation]) => {
-      if (method.toLowerCase() === method.toUpperCase() || ["get", "post", "put", "delete", "patch", "head", "options"].includes(method.toLowerCase())) {
+      if (
+        method.toLowerCase() === method.toUpperCase() ||
+        ["get", "post", "put", "delete", "patch", "head", "options"].includes(
+          method.toLowerCase()
+        )
+      ) {
         endpoints.push({
           id: `api-${id++}`,
           path,
@@ -84,6 +88,30 @@ export function extractEndpoints(spec) {
   });
 
   return endpoints;
+}
+
+/**
+ * Read custom connectors defined in the OpenAPI spec under x-connectors
+ * This is a simple extension so that the workflow builder can include
+ * Camel-style connectors (MongoDB, Kafka etc.) alongside regular
+ * HTTP endpoints.  Each entry should contain at least a `name` and
+ * `component` field; additional metadata like category can be included.
+ *
+ * @param {Object} spec - Parsed OpenAPI spec
+ * @returns {Array} Array of connector objects
+ */
+export function extractConnectors(spec) {
+  const raw = spec["x-connectors"] || [];
+  if (!Array.isArray(raw)) return [];
+
+  return raw.map((item, idx) => ({
+    id: item.id || `conn-${idx + 1}`,
+    name: item.name || item.component || "",
+    category: item.category || "Connector",
+    component: item.component || "",
+    // keep any extra fields around for configuration defaults
+    ...item,
+  }));
 }
 
 /**

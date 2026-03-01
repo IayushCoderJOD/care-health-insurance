@@ -324,7 +324,7 @@ const NodeContextMenu = ({ open, onClose, onConfigureNode, onTagMapping, anchorE
 };
 
 const ApiNode = ({ id, data, selected }) => {
-  console.log(data.endpoint, data, "huheiheihi");
+  console.log(data.connector || data.endpoint, data, "node-data");
 
   // Store actions
   const setSelectedNodeId = useWorkflowStore(
@@ -350,9 +350,10 @@ const ApiNode = ({ id, data, selected }) => {
     name: "",
     method: "GET",
     url: "",
+    connector: "",
     headers: "{}",
     queryParams: "{}",
-    body: "null",
+    body: "null", // used for request body or connector config
   });
 
   // Context Menu state
@@ -378,9 +379,14 @@ const ApiNode = ({ id, data, selected }) => {
         name: data.name || "",
         method: data.method || "GET",
         url: data.url || "",
+        connector: data.connector || "",
         headers: JSON.stringify(data.headers || {}, null, 2),
         queryParams: JSON.stringify(data.queryParams || {}, null, 2),
-        body: JSON.stringify(data.body ?? null, null, 2),
+        body: JSON.stringify(
+          data.connector ? data.config || {} : data.body ?? null,
+          null,
+          2
+        ),
       });
       setTabValue(0);
       setJsonErrors({ headers: null, queryParams: null, body: null });
@@ -493,14 +499,23 @@ const ApiNode = ({ id, data, selected }) => {
       const parsedQueryParams = JSON.parse(formData.queryParams || "{}");
       const parsedBody = JSON.parse(formData.body || "null");
 
-      updateNode(id, {
+      const updates = {
         name: formData.name,
-        method: formData.method,
-        url: formData.url,
         headers: parsedHeaders,
         queryParams: parsedQueryParams,
-        body: parsedBody,
-      });
+      };
+
+      if (formData.connector) {
+        // connector node
+        updates.connector = formData.connector;
+        updates.config = parsedBody;
+      } else {
+        updates.method = formData.method;
+        updates.url = formData.url;
+        updates.body = parsedBody;
+      }
+
+      updateNode(id, updates);
 
       handleClose();
     } catch (err) {
@@ -987,25 +1002,36 @@ const ApiNode = ({ id, data, selected }) => {
                     </Select>
                   </FormControl>
 
-                  <TextField
-                    label="URL / Endpoint"
-                    name="endpoint"
-                    value={data?.endpoint}
-                    onChange={handleChange}
-                    fullWidth
-                    size="small"
-                    placeholder="https://api.example.com/users/{userId}"
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        "&.Mui-focused fieldset": {
-                          borderColor: CAMUNDA_COLORS.primary,
+                  {formData.connector ? (
+                    <TextField
+                      label="Connector"
+                      name="connector"
+                      value={formData.connector}
+                      disabled
+                      fullWidth
+                      size="small"
+                    />
+                  ) : (
+                    <TextField
+                      label="URL / Endpoint"
+                      name="endpoint"
+                      value={data?.endpoint}
+                      onChange={handleChange}
+                      fullWidth
+                      size="small"
+                      placeholder="https://api.example.com/users/{userId}"
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          "&.Mui-focused fieldset": {
+                            borderColor: CAMUNDA_COLORS.primary,
+                          },
                         },
-                      },
-                      "& .MuiInputLabel-root.Mui-focused": {
-                        color: CAMUNDA_COLORS.primary,
-                      },
-                    }}
-                  />
+                        "& .MuiInputLabel-root.Mui-focused": {
+                          color: CAMUNDA_COLORS.primary,
+                        },
+                      }}
+                    />
+                  )}
                 </Box>
               </Stack>
             </Paper>
@@ -1068,7 +1094,7 @@ const ApiNode = ({ id, data, selected }) => {
                 <Tab
                   label={
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      Body
+                      {formData.connector ? "Config" : "Body"}
                       {formData.body !== "null" && formData.body !== "{}" && (
                         <Chip
                           label="✓"

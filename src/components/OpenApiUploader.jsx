@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { parseOpenAPI, extractEndpoints } from "../utils/openApiParser";
+import { parseOpenAPI, extractEndpoints, extractConnectors } from "../utils/openApiParser";
 import useWorkflowStore from "../store/workflowStore";
 
 export default function OpenApiUploader() {
@@ -9,6 +9,7 @@ export default function OpenApiUploader() {
 
   const setOpenApiSpec = useWorkflowStore((state) => state.setOpenApiSpec);
   const setEndpoints = useWorkflowStore((state) => state.setEndpoints);
+  const setConnectors = useWorkflowStore((state) => state.setConnectors);
   const reset = useWorkflowStore((state) => state.reset);
 
   const handleFileUpload = async (event) => {
@@ -21,9 +22,11 @@ export default function OpenApiUploader() {
     try {
       const spec = await parseOpenAPI(file);
       const endpoints = extractEndpoints(spec);
+      const connectors = extractConnectors ? extractConnectors(spec) : [];
 
       setOpenApiSpec(spec);
       setEndpoints(endpoints);
+      if (connectors.length > 0) setConnectors(connectors);
       setInput("");
     } catch (err) {
       setError(err.message);
@@ -44,9 +47,11 @@ export default function OpenApiUploader() {
     try {
       const spec = await parseOpenAPI(input);
       const endpoints = extractEndpoints(spec);
+      const connectors = extractConnectors ? extractConnectors(spec) : [];
 
       setOpenApiSpec(spec);
       setEndpoints(endpoints);
+      if (connectors.length > 0) setConnectors(connectors);
       setInput("");
     } catch (err) {
       setError(err.message);

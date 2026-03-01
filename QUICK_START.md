@@ -49,6 +49,11 @@ Or: https://api.github.com/repos/swagger-api/swagger-petstore/contents/swagger.y
 
 Once loaded, you'll see:
 
+> **Note:** specs may also include _connectors_ (MongoDB, Kafka, timer, etc.)
+> which are rendered in a separate section above the API list with a purple
+> style. Drag them onto the canvas just like endpoints.
+
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │  🔗 API Workflow Builder    [Export Workflow] [Show/Hide] │

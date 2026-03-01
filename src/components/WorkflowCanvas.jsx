@@ -10,11 +10,13 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import useWorkflowStore from "../store/workflowStore";
 import ApiNode from "./ApiNode";
+import ConnectorNode from "./ConnectorNode";
 import { Box, Typography } from "@mui/material";
 import { AccountTree as WorkflowIcon } from "@mui/icons-material";
 
 const nodeTypes = {
   apiNode: ApiNode,
+  connectorNode: ConnectorNode,
 };
 
 export default function WorkflowCanvas() {
@@ -116,9 +118,10 @@ export default function WorkflowCanvas() {
           y: event.clientY - reactFlowBounds.top - 50,
         };
 
+        const isConnector = !!nodeData.connector;
         const newNode = {
           id: `node-${Date.now()}`,
-          type: "apiNode",
+          type: isConnector ? "connectorNode" : "apiNode",
           position,
           data: {
             id: `node-${Date.now()}`,
@@ -127,6 +130,7 @@ export default function WorkflowCanvas() {
             queryParams: {},
             pathParams: {},
             body: null,
+            config: nodeData.connector ? nodeData.config || {} : undefined,
           },
         };
 

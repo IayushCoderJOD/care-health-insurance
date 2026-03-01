@@ -90,9 +90,11 @@ export default function ConfigPanel() {
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
-              API Endpoint
+              {data.connector ? "Connector" : "API Endpoint"}
             </p>
-            <h2 className="text-sm font-semibold text-gray-900 truncate">{data.endpoint}</h2>
+            <h2 className="text-sm font-semibold text-gray-900 truncate">
+              {data.connector || data.endpoint}
+            </h2>
           </div>
           <button
             onClick={() => useWorkflowStore.setState({ selectedNodeId: null })}
@@ -119,14 +121,25 @@ export default function ConfigPanel() {
 
           {expandedSections.general && (
             <div className="px-6 py-4 bg-gray-50 space-y-4 border-t border-gray-100">
-              <div>
-                <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide block mb-2">
-                  Method
-                </label>
-                <div className={`text-sm font-bold ${METHOD_COLORS[data.method] || "text-gray-600"}`}>
-                  {data.method}
+              {data.connector ? (
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide block mb-2">
+                    Component
+                  </label>
+                  <div className="text-sm font-bold text-gray-600">
+                    {data.connector}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div>
+                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide block mb-2">
+                    Method
+                  </label>
+                  <div className={`text-sm font-bold ${METHOD_COLORS[data.method] || "text-gray-600"}`}>
+                    {data.method}
+                  </div>
+                </div>
+              )}
 
               {data.summary && (
                 <div>
@@ -246,15 +259,15 @@ export default function ConfigPanel() {
           )}
         </div>
 
-        {/* Request Body Section */}
-        {data.requestBody && (
+        {/* Request Body or Connector Configuration Section */}
+        {(data.requestBody || data.connector) && (
           <div className="border-b border-gray-100">
             <button
               onClick={() => toggleSection("body")}
               className="w-full px-6 py-3 flex items-center justify-between hover:bg-gray-50 transition group"
             >
               <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
-                Request Body
+                {data.connector ? "Connector Configuration" : "Request Body"}
               </span>
               <span className={`text-gray-400 text-xs transition ${expandedSections.body ? "rotate-90" : ""}`}>
                 ▶
@@ -263,22 +276,39 @@ export default function ConfigPanel() {
 
             {expandedSections.body && (
               <div className="px-6 py-4 bg-gray-50 space-y-4 border-t border-gray-100">
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide block mb-2">
-                    Content Type
-                  </label>
-                  <div className="px-3 py-2 text-xs bg-white border border-gray-300 rounded text-gray-600 font-mono">
-                    {data.requestBody.contentType}
+                {data.requestBody && (
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide block mb-2">
+                      Content Type
+                    </label>
+                    <div className="px-3 py-2 text-xs bg-white border border-gray-300 rounded text-gray-600 font-mono">
+                      {data.requestBody.contentType}
+                    </div>
                   </div>
-                </div>
+                )}
                 <div>
                   <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide block mb-2">
-                    Body
+                    {data.connector ? "Config" : "Body"}
                   </label>
                   <textarea
                     placeholder="Enter JSON..."
-                    value={data.body ? JSON.stringify(data.body, null, 2) : ""}
-                    onChange={handleBodyChange}
+                    value={
+                      data.connector
+                        ? JSON.stringify(data.config || {}, null, 2)
+                        : data.body
+                        ? JSON.stringify(data.body, null, 2)
+                        : ""
+                    }
+                    onChange={(e) => {
+                      if (data.connector) {
+                        try {
+                          const parsed = JSON.parse(e.target.value);
+                          updateNode(selectedNodeId, { config: parsed });
+                        } catch {}
+                      } else {
+                        handleBodyChange(e);
+                      }
+                    }}
                     className="w-full h-32 px-3 py-2 text-xs border border-gray-200 rounded font-mono focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-gray-300 transition resize-none"
                   />
                 </div>
