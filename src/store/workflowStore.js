@@ -107,7 +107,9 @@ export const dummyWorkflows = {
           path: "/payments/process",
           summary: "Process Payment",
           description: "Request body",
-          headers: {},
+          headers: {
+            dev: "Ayush Tyagi"
+          },
           queryParams: {},
           pathParams: {},
           body: null,

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Modal,
   Box,
@@ -6,7 +6,6 @@ import {
   IconButton,
   Button,
   Paper,
-  Divider,
   Select,
   MenuItem,
   FormControl,
@@ -23,6 +22,8 @@ import SyncAltIcon from "@mui/icons-material/SyncAlt";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import SearchIcon from "@mui/icons-material/Search";
 import LinkIcon from "@mui/icons-material/Link";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 const modalStyle = {
   position: "absolute",
@@ -39,26 +40,378 @@ const modalStyle = {
   overflow: "hidden",
 };
 
+// Helper function to flatten tree and filter items
+const flattenTree = (items, searchTerm = "") => {
+  const result = [];
+  const traverse = (nodes, depth = 0) => {
+    nodes.forEach((node) => {
+      const matchesSearch =
+        searchTerm === "" ||
+        node.name.toLowerCase().includes(searchTerm.toLowerCase());
+
+      if (matchesSearch) {
+        result.push({ ...node, depth });
+      }
+
+      if (node.children) {
+        traverse(node.children, depth + 1);
+      }
+    });
+  };
+  traverse(items);
+  return result;
+};
+
+// Tree Node Component
+const TreeNode = ({
+  node,
+  depth = 0,
+  expandedSet,
+  onToggleExpand,
+  onDragStart,
+  onDragEnd,
+  dragOverId,
+  onDragOver,
+  onDragLeave,
+}) => {
+  const hasChildren = node.children && node.children.length > 0;
+  const isExpanded = expandedSet?.has(node.id);
+  const isDragOver = dragOverId === node.id;
+  const isCategory = node.type === "category";
+  const isTask = node.type === "task";
+
+  const getNodeColor = () => {
+    if (isCategory) return { bg: "#f0f4ff", border: "#c7d2fe", text: "#3730a3" };
+    if (isTask) return { bg: "#f5f3ff", border: "#ddd6fe", text: "#581c87" };
+    return { bg: "#f8f8f8", border: "#e5e7eb", text: "#6b7280" };
+  };
+
+  const getNodeIcon = () => {
+    if (isCategory) return "📁";
+    if (isTask) return "✓";
+    return "◆";
+  };
+
+  const colors = getNodeColor();
+
+  const handleDragStart = (e) => {
+    e.stopPropagation();
+    onDragStart(e, node);
+  };
+
+  const handleDragEnd = (e) => {
+    e.stopPropagation();
+    onDragEnd();
+  };
+
+  const handleDragOver = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    onDragOver(e, node.id);
+  };
+
+  const handleDragLeave = (e) => {
+    e.stopPropagation();
+    onDragLeave();
+  };
+
+  return (
+    <Box>
+      <Paper
+        draggable
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        elevation={0}
+        sx={{
+          p: 1,
+          mb: 0.5,
+          ml: `${depth * 16}px`,
+          cursor: "grab",
+          border: `1.5px solid ${isDragOver ? "#6366f1" : colors.border}`,
+          borderRadius: 1,
+          display: "flex",
+          alignItems: "center",
+          gap: 0.5,
+          bgcolor: isDragOver ? "#e0e7ff" : colors.bg,
+          transition: "all 0.2s",
+          "&:hover": {
+            borderColor: "#6366f1",
+            boxShadow: "0 2px 8px rgba(99, 102, 241, 0.1)",
+          },
+          "&:active": {
+            cursor: "grabbing",
+          },
+        }}
+      >
+        {hasChildren && (
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleExpand(node.id);
+            }}
+            sx={{
+              p: 0.25,
+              minWidth: 24,
+              minHeight: 24,
+              color: colors.text,
+              "&:hover": { bgcolor: "rgba(99, 102, 241, 0.05)" },
+            }}
+          >
+            {isExpanded ? (
+              <ExpandMoreIcon fontSize="small" />
+            ) : (
+              <ChevronRightIcon fontSize="small" />
+            )}
+          </IconButton>
+        )}
+        {!hasChildren && <Box sx={{ width: 24 }} />}
+
+        <span style={{ fontSize: "0.9rem", marginRight: 4 }}>
+          {getNodeIcon()}
+        </span>
+
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography
+            variant="body2"
+            fontWeight={isCategory || isTask ? 600 : 500}
+            noWrap
+            sx={{
+              fontSize: "0.8rem",
+              color: colors.text,
+            }}
+          >
+            {node.name}
+          </Typography>
+        </Box>
+
+        {node.type !== "category" && (
+          <Chip
+            label={node.type}
+            size="small"
+            sx={{
+              height: 18,
+              fontSize: "0.65rem",
+              bgcolor: colors.border,
+              color: colors.text,
+            }}
+          />
+        )}
+
+        <DragIndicatorIcon
+          fontSize="small"
+          sx={{ color: "#9ca3af", flexShrink: 0 }}
+        />
+      </Paper>
+
+      {hasChildren && isExpanded && (
+        <Box>
+          {node.children.map((child) => (
+            <TreeNode
+              key={child.id}
+              node={child}
+              depth={depth + 1}
+              expandedSet={expandedSet}
+              onToggleExpand={onToggleExpand}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+              dragOverId={dragOverId}
+              onDragOver={onDragOver}
+              onDragLeave={onDragLeave}
+            />
+          ))}
+        </Box>
+      )}
+    </Box>
+  );
+};
+
 const SAMPLE_SOURCES = [
-  { id: "src-1", name: "Website Development", category: "Development" },
-  { id: "src-2", name: "Fixture", category: "Setup" },
-  { id: "src-3", name: "Campaign Rollout", category: "Marketing" },
-  { id: "src-4", name: "API Integration", category: "Development" },
-  { id: "src-5", name: "Database Setup", category: "Setup" },
-  { id: "src-6", name: "User Testing", category: "QA" },
-  { id: "src-7", name: "Deployment", category: "DevOps" },
+  {
+    id: "src-1",
+    name: "Development",
+    type: "category",
+    children: [
+      {
+        id: "src-1-1",
+        name: "Website Development",
+        type: "task",
+        children: [
+          { id: "src-1-1-1", name: "Frontend", type: "subtask" },
+          { id: "src-1-1-2", name: "Backend", type: "subtask" },
+          { id: "src-1-1-3", name: "API Integration", type: "subtask" },
+        ],
+      },
+      {
+        id: "src-1-2",
+        name: "Database Setup",
+        type: "task",
+        children: [
+          { id: "src-1-2-1", name: "Schema Design", type: "subtask" },
+          { id: "src-1-2-2", name: "Migration", type: "subtask" },
+        ],
+      },
+      {
+        id: "src-1-3",
+        name: "Deployment",
+        type: "task",
+        children: [
+          { id: "src-1-3-1", name: "Test Environment", type: "subtask" },
+          { id: "src-1-3-2", name: "Production", type: "subtask" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "src-2",
+    name: "QA & Testing",
+    type: "category",
+    children: [
+      {
+        id: "src-2-1",
+        name: "User Testing",
+        type: "task",
+        children: [
+          { id: "src-2-1-1", name: "UAT Phase 1", type: "subtask" },
+          { id: "src-2-1-2", name: "UAT Phase 2", type: "subtask" },
+        ],
+      },
+      {
+        id: "src-2-2",
+        name: "Bug Testing",
+        type: "task",
+        children: [
+          { id: "src-2-2-1", name: "Regression", type: "subtask" },
+          { id: "src-2-2-2", name: "Smoke Test", type: "subtask" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "src-3",
+    name: "Setup & Infrastructure",
+    type: "category",
+    children: [
+      {
+        id: "src-3-1",
+        name: "Fixture Setup",
+        type: "task",
+        children: [
+          { id: "src-3-1-1", name: "Test Data", type: "subtask" },
+          { id: "src-3-1-2", name: "Environment Config", type: "subtask" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "src-4",
+    name: "Marketing & Sales",
+    type: "category",
+    children: [
+      {
+        id: "src-4-1",
+        name: "Campaign Rollout",
+        type: "task",
+        children: [
+          { id: "src-4-1-1", name: "Social Media", type: "subtask" },
+          { id: "src-4-1-2", name: "Email Campaign", type: "subtask" },
+          { id: "src-4-1-3", name: "Launch Event", type: "subtask" },
+        ],
+      },
+    ],
+  },
 ];
 
 const SAMPLE_TARGETS = [
-  { id: "tgt-1", name: "Marketer Request", category: "Marketing" },
-  { id: "tgt-2", name: "Developer Task", category: "Development" },
-  { id: "tgt-3", name: "QA Review", category: "QA" },
-  { id: "tgt-4", name: "Design Review", category: "Design" },
-  { id: "tgt-5", name: "Client Approval", category: "External" },
-  { id: "tgt-6", name: "Documentation", category: "Docs" },
+  {
+    id: "tgt-1",
+    name: "Development Tasks",
+    type: "category",
+    children: [
+      {
+        id: "tgt-1-1",
+        name: "Developer Task",
+        type: "task",
+        children: [
+          { id: "tgt-1-1-1", name: "Code Review", type: "subtask" },
+          { id: "tgt-1-1-2", name: "Implementation", type: "subtask" },
+          { id: "tgt-1-1-3", name: "Testing", type: "subtask" },
+        ],
+      },
+      {
+        id: "tgt-1-2",
+        name: "Design Review",
+        type: "task",
+        children: [
+          { id: "tgt-1-2-1", name: "UI Review", type: "subtask" },
+          { id: "tgt-1-2-2", name: "UX Feedback", type: "subtask" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "tgt-2",
+    name: "QA & Review",
+    type: "category",
+    children: [
+      {
+        id: "tgt-2-1",
+        name: "QA Review",
+        type: "task",
+        children: [
+          { id: "tgt-2-1-1", name: "Test Plan", type: "subtask" },
+          { id: "tgt-2-1-2", name: "Test Execution", type: "subtask" },
+          { id: "tgt-2-1-3", name: "Bug Report", type: "subtask" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "tgt-3",
+    name: "Approvals",
+    type: "category",
+    children: [
+      {
+        id: "tgt-3-1",
+        name: "Marketer Request",
+        type: "task",
+        children: [
+          { id: "tgt-3-1-1", name: "Copy Approval", type: "subtask" },
+          { id: "tgt-3-1-2", name: "Asset Approval", type: "subtask" },
+        ],
+      },
+      {
+        id: "tgt-3-2",
+        name: "Client Approval",
+        type: "task",
+        children: [
+          { id: "tgt-3-2-1", name: "Stakeholder Sign-off", type: "subtask" },
+          { id: "tgt-3-2-2", name: "Legal Review", type: "subtask" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "tgt-4",
+    name: "Documentation",
+    type: "category",
+    children: [
+      {
+        id: "tgt-4-1",
+        name: "Technical Documentation",
+        type: "task",
+        children: [
+          { id: "tgt-4-1-1", name: "API Docs", type: "subtask" },
+          { id: "tgt-4-1-2", name: "User Guide", type: "subtask" },
+        ],
+      },
+    ],
+  },
 ];
 
-export default function TagMappingModal({selectedNode, open, onClose, onSave }) {
+export default function TagMappingModal({ open, onClose, onSave }) {
   const [mappings, setMappings] = useState([
     { id: "map-1", sourceId: "", targetId: "" },
   ]);
@@ -67,16 +420,42 @@ export default function TagMappingModal({selectedNode, open, onClose, onSave }) 
   const [targetSearch, setTargetSearch] = useState("");
 
   const [draggedItem, setDraggedItem] = useState(null);
-  const [dragOverMapping, setDragOverMapping] = useState(null);
-  const [dragOverSide, setDragOverSide] = useState(null);
+  const [dragOverId, setDragOverId] = useState(null);
 
-  const filteredSources = SAMPLE_SOURCES.filter((item) =>
-    item.name.toLowerCase().includes(sourceSearch.toLowerCase())
+  // Expand/collapse state for tree nodes
+  const [expandedSourceNodes, setExpandedSourceNodes] = useState(
+    new Set(["src-1", "src-2", "src-3", "src-4"])
+  );
+  const [expandedTargetNodes, setExpandedTargetNodes] = useState(
+    new Set(["tgt-1", "tgt-2", "tgt-3", "tgt-4"])
   );
 
-  const filteredTargets = SAMPLE_TARGETS.filter((item) =>
-    item.name.toLowerCase().includes(targetSearch.toLowerCase())
-  );
+  const flattenedSources = flattenTree(SAMPLE_SOURCES, sourceSearch);
+  const flattenedTargets = flattenTree(SAMPLE_TARGETS, targetSearch);
+
+  const toggleSourceNodeExpand = useCallback((nodeId) => {
+    setExpandedSourceNodes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId);
+      } else {
+        newSet.add(nodeId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const toggleTargetNodeExpand = useCallback((nodeId) => {
+    setExpandedTargetNodes((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(nodeId)) {
+        newSet.delete(nodeId);
+      } else {
+        newSet.add(nodeId);
+      }
+      return newSet;
+    });
+  }, []);
 
   const handleAddMapping = () => {
     setMappings((prev) => [
@@ -102,19 +481,16 @@ export default function TagMappingModal({selectedNode, open, onClose, onSave }) 
 
   const handleDragEnd = () => {
     setDraggedItem(null);
-    setDragOverMapping(null);
-    setDragOverSide(null);
+    setDragOverId(null);
   };
 
-  const handleDragOver = (e, mappingId, side) => {
+  const handleDragOver = (e, nodeId = null) => {
     e.preventDefault();
-    setDragOverMapping(mappingId);
-    setDragOverSide(side);
+    if (nodeId) setDragOverId(nodeId);
   };
 
   const handleDragLeave = () => {
-    setDragOverMapping(null);
-    setDragOverSide(null);
+    setDragOverId(null);
   };
 
   const handleDrop = (e, mappingId, side) => {
@@ -129,8 +505,7 @@ export default function TagMappingModal({selectedNode, open, onClose, onSave }) 
       }
     }
     setDraggedItem(null);
-    setDragOverMapping(null);
-    setDragOverSide(null);
+    setDragOverId(null);
   };
 
   const handleSave = () => {
@@ -143,6 +518,20 @@ export default function TagMappingModal({selectedNode, open, onClose, onSave }) 
     if (mapping.sourceId && mapping.targetId) return "complete";
     if (mapping.sourceId || mapping.targetId) return "partial";
     return "empty";
+  };
+
+  const getItemName = (id) => {
+    const findName = (items) => {
+      for (let item of items) {
+        if (item.id === id) return item.name;
+        if (item.children) {
+          const found = findName(item.children);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+    return findName(SAMPLE_SOURCES) || findName(SAMPLE_TARGETS);
   };
 
   return (
@@ -164,10 +553,10 @@ export default function TagMappingModal({selectedNode, open, onClose, onSave }) 
             <LinkIcon sx={{ color: "#6366f1" }} />
             <Box>
               <Typography variant="h6" fontWeight={600}>
-                Selected {selectedNode}
+                Map Tags & Labels
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Map source tags to target labels
+                Create mappings between nested tag hierarchies
               </Typography>
             </Box>
           </Box>
@@ -178,14 +567,14 @@ export default function TagMappingModal({selectedNode, open, onClose, onSave }) 
 
         {/* Main Content */}
         <Box sx={{ display: "flex", height: "calc(90vh - 180px)", minHeight: 400 }}>
-          {/* Left Panel - Source Tags */}
+          {/* Left Panel - Source Tags (Tree) */}
           <Box
             sx={{
-              width: 220,
+              width: 280,
               borderRight: "1px solid #e2e8f0",
               display: "flex",
               flexDirection: "column",
-              bgcolor: "#f8fafc",
+              bgcolor: "#fafbfc",
             }}
           >
             <Box sx={{ p: 2, borderBottom: "1px solid #e2e8f0" }}>
@@ -198,67 +587,32 @@ export default function TagMappingModal({selectedNode, open, onClose, onSave }) 
                 value={sourceSearch}
                 onChange={(e) => setSourceSearch(e.target.value)}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" sx={{ color: "#9ca3af" }} />
-                    </InputAdornment>
-                  ),
-                  sx: { fontSize: "0.85rem" },
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" sx={{ color: "#9ca3af" }} />
+                      </InputAdornment>
+                    ),
+                    sx: { fontSize: "0.85rem" },
+                  },
                 }}
               />
             </Box>
-            <Box sx={{ flex: 1, overflow: "auto", p: 1 }}>
-              {filteredSources.map((source) => (
-                <Paper
+            <Box sx={{ flex: 1, overflow: "auto", p: 1.5 }}>
+              {SAMPLE_SOURCES.map((source) => (
+                <TreeNode
                   key={source.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, source, "source")}
+                  node={source}
+                  depth={0}
+                  expandedSet={expandedSourceNodes}
+                  onToggleExpand={toggleSourceNodeExpand}
+                  onDragStart={(e, item) => handleDragStart(e, item, "source")}
                   onDragEnd={handleDragEnd}
-                  elevation={0}
-                  sx={{
-                    p: 1.5,
-                    mb: 1,
-                    cursor: "grab",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: 1.5,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    bgcolor: "white",
-                    transition: "all 0.2s",
-                    "&:hover": {
-                      borderColor: "#6366f1",
-                      bgcolor: "#f5f3ff",
-                    },
-                    "&:active": {
-                      cursor: "grabbing",
-                    },
-                  }}
-                >
-                  <DragIndicatorIcon
-                    fontSize="small"
-                    sx={{ color: "#9ca3af" }}
-                  />
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      variant="body2"
-                      fontWeight={500}
-                      noWrap
-                      sx={{ fontSize: "0.85rem" }}
-                    >
-                      {source.name}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ fontSize: "0.7rem" }}
-                    >
-                      {source.category}
-                    </Typography>
-                  </Box>
-                  <AddIcon fontSize="small" sx={{ color: "#9ca3af" }} />
-                </Paper>
+                  dragOverId={dragOverId}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                />
               ))}
             </Box>
           </Box>
@@ -323,10 +677,8 @@ export default function TagMappingModal({selectedNode, open, onClose, onSave }) 
             <Box sx={{ flex: 1, overflow: "auto", p: 2 }}>
               {mappings.map((mapping) => {
                 const status = getMappingStatus(mapping);
-                const isSourceDragOver =
-                  dragOverMapping === mapping.id && dragOverSide === "source";
-                const isTargetDragOver =
-                  dragOverMapping === mapping.id && dragOverSide === "target";
+                const sourceName = getItemName(mapping.sourceId);
+                const targetName = getItemName(mapping.targetId);
 
                 return (
                   <Paper
@@ -354,66 +706,107 @@ export default function TagMappingModal({selectedNode, open, onClose, onSave }) 
                           : "white",
                     }}
                   >
-                    {/* Source Dropdown / Drop Zone */}
+                    {/* Source Display / Selector */}
                     <Box
                       sx={{ flex: 1 }}
-                      onDragOver={(e) => handleDragOver(e, mapping.id, "source")}
+                      onDragOver={(e) => handleDragOver(e, mapping.id)}
                       onDragLeave={handleDragLeave}
                       onDrop={(e) => handleDrop(e, mapping.id, "source")}
                     >
-                      <FormControl fullWidth size="small">
-                        <Select
-                          value={mapping.sourceId}
-                          onChange={(e) =>
-                            handleMappingChange(mapping.id, "sourceId", e.target.value)
-                          }
-                          displayEmpty
+                      {mapping.sourceId ? (
+                        <Paper
+                          elevation={0}
                           sx={{
-                            bgcolor: isSourceDragOver ? "#ddd6fe" : "white",
-                            borderColor: isSourceDragOver ? "#6366f1" : undefined,
-                            transition: "all 0.2s",
-                            "& .MuiOutlinedInput-notchedOutline": {
-                              borderColor: isSourceDragOver
-                                ? "#6366f1"
-                                : undefined,
-                              borderWidth: isSourceDragOver ? 2 : 1,
-                            },
+                            p: 1.5,
+                            bgcolor: "#f5f3ff",
+                            border: "1px solid #ddd6fe",
+                            borderRadius: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
                           }}
                         >
-                          <MenuItem value="" disabled>
-                            <Typography color="text.secondary" fontSize="0.875rem">
-                              Select a tag
+                          <Box>
+                            <Typography
+                              variant="body2"
+                              fontWeight={500}
+                              sx={{ fontSize: "0.85rem" }}
+                            >
+                              {sourceName}
                             </Typography>
-                          </MenuItem>
-                          {SAMPLE_SOURCES.map((source) => (
-                            <MenuItem key={source.id} value={source.id}>
-                              <Box
-                                sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{ fontSize: "0.7rem" }}
+                            >
+                              ID: {mapping.sourceId}
+                            </Typography>
+                          </Box>
+                          <Tooltip title="Click to edit">
+                            <Button
+                              size="small"
+                              onClick={() =>
+                                handleMappingChange(mapping.id, "sourceId", "")
+                              }
+                              sx={{ color: "#6366f1" }}
+                            >
+                              Change
+                            </Button>
+                          </Tooltip>
+                        </Paper>
+                      ) : (
+                        <FormControl fullWidth size="small">
+                          <Select
+                            value={mapping.sourceId}
+                            onChange={(e) =>
+                              handleMappingChange(
+                                mapping.id,
+                                "sourceId",
+                                e.target.value
+                              )
+                            }
+                            displayEmpty
+                            sx={{
+                              bgcolor: "white",
+                            }}
+                          >
+                            <MenuItem value="" disabled>
+                              <Typography
+                                color="text.secondary"
+                                fontSize="0.875rem"
                               >
-                                <Chip
-                                  label={source.category}
-                                  size="small"
-                                  sx={{
-                                    height: 20,
-                                    fontSize: "0.65rem",
-                                    bgcolor: "#e0e7ff",
-                                    color: "#4338ca",
-                                  }}
-                                />
-                                {source.name}
-                              </Box>
+                                Select a tag or drag it here
+                              </Typography>
                             </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                      {isSourceDragOver && (
-                        <Typography
-                          variant="caption"
-                          color="primary"
-                          sx={{ mt: 0.5, display: "block" }}
-                        >
-                          Drop here
-                        </Typography>
+                            {flattenedSources.map((source) => (
+                              <MenuItem key={source.id} value={source.id}>
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1,
+                                  }}
+                                >
+                                  <Box
+                                    sx={{ ml: `${source.depth * 12}px` }}
+                                  />
+                                  {source.name}
+                                  {source.type !== "category" && (
+                                    <Chip
+                                      label={source.type}
+                                      size="small"
+                                      sx={{
+                                        height: 18,
+                                        fontSize: "0.65rem",
+                                        ml: 1,
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
                       )}
                     </Box>
 
@@ -439,65 +832,107 @@ export default function TagMappingModal({selectedNode, open, onClose, onSave }) 
                       />
                     </Box>
 
-                    {/* Target Dropdown / Drop Zone */}
+                    {/* Target Display / Selector */}
                     <Box
                       sx={{ flex: 1 }}
-                      onDragOver={(e) => handleDragOver(e, mapping.id, "target")}
+                      onDragOver={(e) => handleDragOver(e, mapping.id)}
                       onDragLeave={handleDragLeave}
                       onDrop={(e) => handleDrop(e, mapping.id, "target")}
                     >
-                      <FormControl fullWidth size="small">
-                        <Select
-                          value={mapping.targetId}
-                          onChange={(e) =>
-                            handleMappingChange(mapping.id, "targetId", e.target.value)
-                          }
-                          displayEmpty
+                      {mapping.targetId ? (
+                        <Paper
+                          elevation={0}
                           sx={{
-                            bgcolor: isTargetDragOver ? "#d1fae5" : "white",
-                            transition: "all 0.2s",
-                            "& .MuiOutlinedInput-notchedOutline": {
-                              borderColor: isTargetDragOver
-                                ? "#22c55e"
-                                : undefined,
-                              borderWidth: isTargetDragOver ? 2 : 1,
-                            },
+                            p: 1.5,
+                            bgcolor: "#dcfce7",
+                            border: "1px solid #bbf7d0",
+                            borderRadius: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
                           }}
                         >
-                          <MenuItem value="" disabled>
-                            <Typography color="text.secondary" fontSize="0.875rem">
-                              Select a label
+                          <Box>
+                            <Typography
+                              variant="body2"
+                              fontWeight={500}
+                              sx={{ fontSize: "0.85rem" }}
+                            >
+                              {targetName}
                             </Typography>
-                          </MenuItem>
-                          {SAMPLE_TARGETS.map((target) => (
-                            <MenuItem key={target.id} value={target.id}>
-                              <Box
-                                sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                              sx={{ fontSize: "0.7rem" }}
+                            >
+                              ID: {mapping.targetId}
+                            </Typography>
+                          </Box>
+                          <Tooltip title="Click to edit">
+                            <Button
+                              size="small"
+                              onClick={() =>
+                                handleMappingChange(mapping.id, "targetId", "")
+                              }
+                              sx={{ color: "#22c55e" }}
+                            >
+                              Change
+                            </Button>
+                          </Tooltip>
+                        </Paper>
+                      ) : (
+                        <FormControl fullWidth size="small">
+                          <Select
+                            value={mapping.targetId}
+                            onChange={(e) =>
+                              handleMappingChange(
+                                mapping.id,
+                                "targetId",
+                                e.target.value
+                              )
+                            }
+                            displayEmpty
+                            sx={{
+                              bgcolor: "white",
+                            }}
+                          >
+                            <MenuItem value="" disabled>
+                              <Typography
+                                color="text.secondary"
+                                fontSize="0.875rem"
                               >
-                                <Chip
-                                  label={target.category}
-                                  size="small"
-                                  sx={{
-                                    height: 20,
-                                    fontSize: "0.65rem",
-                                    bgcolor: "#dcfce7",
-                                    color: "#166534",
-                                  }}
-                                />
-                                {target.name}
-                              </Box>
+                                Select a label or drag it here
+                              </Typography>
                             </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                      {isTargetDragOver && (
-                        <Typography
-                          variant="caption"
-                          color="success.main"
-                          sx={{ mt: 0.5, display: "block", textAlign: "right" }}
-                        >
-                          Drop here
-                        </Typography>
+                            {flattenedTargets.map((target) => (
+                              <MenuItem key={target.id} value={target.id}>
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1,
+                                  }}
+                                >
+                                  <Box
+                                    sx={{ ml: `${target.depth * 12}px` }}
+                                  />
+                                  {target.name}
+                                  {target.type !== "category" && (
+                                    <Chip
+                                      label={target.type}
+                                      size="small"
+                                      sx={{
+                                        height: 18,
+                                        fontSize: "0.65rem",
+                                        ml: 1,
+                                      }}
+                                    />
+                                  )}
+                                </Box>
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
                       )}
                     </Box>
 
@@ -541,14 +976,14 @@ export default function TagMappingModal({selectedNode, open, onClose, onSave }) 
             </Box>
           </Box>
 
-          {/* Right Panel - Target Labels */}
+          {/* Right Panel - Target Labels (Tree) */}
           <Box
             sx={{
-              width: 220,
+              width: 280,
               borderLeft: "1px solid #e2e8f0",
               display: "flex",
               flexDirection: "column",
-              bgcolor: "#f8fafc",
+              bgcolor: "#fafbfc",
             }}
           >
             <Box sx={{ p: 2, borderBottom: "1px solid #e2e8f0" }}>
@@ -561,67 +996,32 @@ export default function TagMappingModal({selectedNode, open, onClose, onSave }) 
                 value={targetSearch}
                 onChange={(e) => setTargetSearch(e.target.value)}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon fontSize="small" sx={{ color: "#9ca3af" }} />
-                    </InputAdornment>
-                  ),
-                  sx: { fontSize: "0.85rem" },
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon fontSize="small" sx={{ color: "#9ca3af" }} />
+                      </InputAdornment>
+                    ),
+                    sx: { fontSize: "0.85rem" },
+                  },
                 }}
               />
             </Box>
-            <Box sx={{ flex: 1, overflow: "auto", p: 1 }}>
-              {filteredTargets.map((target) => (
-                <Paper
+            <Box sx={{ flex: 1, overflow: "auto", p: 1.5 }}>
+              {SAMPLE_TARGETS.map((target) => (
+                <TreeNode
                   key={target.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, target, "target")}
+                  node={target}
+                  depth={0}
+                  expandedSet={expandedTargetNodes}
+                  onToggleExpand={toggleTargetNodeExpand}
+                  onDragStart={(e, item) => handleDragStart(e, item, "target")}
                   onDragEnd={handleDragEnd}
-                  elevation={0}
-                  sx={{
-                    p: 1.5,
-                    mb: 1,
-                    cursor: "grab",
-                    border: "1px solid #e2e8f0",
-                    borderRadius: 1.5,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    bgcolor: "white",
-                    transition: "all 0.2s",
-                    "&:hover": {
-                      borderColor: "#22c55e",
-                      bgcolor: "#f0fdf4",
-                    },
-                    "&:active": {
-                      cursor: "grabbing",
-                    },
-                  }}
-                >
-                  <AddIcon fontSize="small" sx={{ color: "#9ca3af" }} />
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      variant="body2"
-                      fontWeight={500}
-                      noWrap
-                      sx={{ fontSize: "0.85rem" }}
-                    >
-                      {target.name}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary"
-                      sx={{ fontSize: "0.7rem" }}
-                    >
-                      {target.category}
-                    </Typography>
-                  </Box>
-                  <DragIndicatorIcon
-                    fontSize="small"
-                    sx={{ color: "#9ca3af" }}
-                  />
-                </Paper>
+                  dragOverId={dragOverId}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                />
               ))}
             </Box>
           </Box>
