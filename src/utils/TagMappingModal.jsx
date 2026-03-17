@@ -24,6 +24,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import LinkIcon from "@mui/icons-material/Link";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { generateSampleTargetsFromCopybook, COMBSTSI_SAMPLE } from "./copybookParser";
 
 const modalStyle = {
   position: "absolute",
@@ -230,186 +231,284 @@ const TreeNode = ({
 
 const SAMPLE_SOURCES = [
   {
-    id: "src-1",
-    name: "Development",
-    type: "category",
+    id: "ui-1",
+    name: "PolicyRequest",
+    type: "object",
     children: [
+      { id: "ui-1-1", name: "policyNumber", type: "string" },
+      { id: "ui-1-2", name: "customerName", type: "string" },
+      { id: "ui-1-3", name: "customerAge", type: "number" },
+      { id: "ui-1-4", name: "premiumAmount", type: "decimal" },
       {
-        id: "src-1-1",
-        name: "Website Development",
-        type: "task",
+        id: "ui-1-5",
+        name: "address",
+        type: "object",
         children: [
-          { id: "src-1-1-1", name: "Frontend", type: "subtask" },
-          { id: "src-1-1-2", name: "Backend", type: "subtask" },
-          { id: "src-1-1-3", name: "API Integration", type: "subtask" },
+          { id: "ui-1-5-1", name: "city", type: "string" },
+          { id: "ui-1-5-2", name: "state", type: "string" },
+          { id: "ui-1-5-3", name: "pincode", type: "number" },
+          {
+            id: "ui-1-5-4",
+            name: "coordinates",
+            type: "object",
+            children: [
+              { id: "ui-1-5-4-1", name: "latitude", type: "decimal" },
+              { id: "ui-1-5-4-2", name: "longitude", type: "decimal" },
+              {
+                id: "ui-1-5-4-3",
+                name: "metadata",
+                type: "object",
+                children: [
+                  { id: "ui-1-5-4-3-1", name: "accuracy", type: "number" },
+                  { id: "ui-1-5-4-3-2", name: "timestamp", type: "date" },
+                  { id: "ui-1-5-4-3-3", name: "source", type: "string" },
+                ],
+              },
+            ],
+          },
         ],
       },
       {
-        id: "src-1-2",
-        name: "Database Setup",
-        type: "task",
+        id: "ui-1-6",
+        name: "coverage",
+        type: "object",
         children: [
-          { id: "src-1-2-1", name: "Schema Design", type: "subtask" },
-          { id: "src-1-2-2", name: "Migration", type: "subtask" },
-        ],
-      },
-      {
-        id: "src-1-3",
-        name: "Deployment",
-        type: "task",
-        children: [
-          { id: "src-1-3-1", name: "Test Environment", type: "subtask" },
-          { id: "src-1-3-2", name: "Production", type: "subtask" },
+          { id: "ui-1-6-1", name: "type", type: "string" },
+          { id: "ui-1-6-2", name: "amount", type: "decimal" },
+          {
+            id: "ui-1-6-3",
+            name: "details",
+            type: "object",
+            children: [
+              { id: "ui-1-6-3-1", name: "deductible", type: "decimal" },
+              { id: "ui-1-6-3-2", name: "coinsurance", type: "decimal" },
+              {
+                id: "ui-1-6-3-3",
+                name: "exclusions",
+                type: "object",
+                children: [
+                  { id: "ui-1-6-3-3-1", name: "preExisting", type: "boolean" },
+                  { id: "ui-1-6-3-3-2", name: "waitingPeriod", type: "number" },
+                  { id: "ui-1-6-3-3-3", name: "conditions", type: "string" },
+                ],
+              },
+            ],
+          },
         ],
       },
     ],
   },
+
   {
-    id: "src-2",
-    name: "QA & Testing",
-    type: "category",
+    id: "ui-2",
+    name: "CustomerRegistration",
+    type: "object",
     children: [
+      { id: "ui-2-1", name: "customerId", type: "string" },
+      { id: "ui-2-2", name: "firstName", type: "string" },
+      { id: "ui-2-3", name: "lastName", type: "string" },
+      { id: "ui-2-4", name: "email", type: "string" },
+      { id: "ui-2-5", name: "mobileNumber", type: "string" },
       {
-        id: "src-2-1",
-        name: "User Testing",
-        type: "task",
+        id: "ui-2-6",
+        name: "profile",
+        type: "object",
         children: [
-          { id: "src-2-1-1", name: "UAT Phase 1", type: "subtask" },
-          { id: "src-2-1-2", name: "UAT Phase 2", type: "subtask" },
+          { id: "ui-2-6-1", name: "dob", type: "date" },
+          { id: "ui-2-6-2", name: "gender", type: "string" },
+          {
+            id: "ui-2-6-3",
+            name: "identity",
+            type: "object",
+            children: [
+              { id: "ui-2-6-3-1", name: "type", type: "string" },
+              { id: "ui-2-6-3-2", name: "number", type: "string" },
+              { id: "ui-2-6-3-3", name: "expiryDate", type: "date" },
+              {
+                id: "ui-2-6-3-4",
+                name: "verification",
+                type: "object",
+                children: [
+                  { id: "ui-2-6-3-4-1", name: "status", type: "string" },
+                  { id: "ui-2-6-3-4-2", name: "verifiedDate", type: "date" },
+                  { id: "ui-2-6-3-4-3", name: "verifiedBy", type: "string" },
+                ],
+              },
+            ],
+          },
         ],
       },
       {
-        id: "src-2-2",
-        name: "Bug Testing",
-        type: "task",
+        id: "ui-2-7",
+        name: "contact",
+        type: "object",
         children: [
-          { id: "src-2-2-1", name: "Regression", type: "subtask" },
-          { id: "src-2-2-2", name: "Smoke Test", type: "subtask" },
+          { id: "ui-2-7-1", name: "primary", type: "string" },
+          { id: "ui-2-7-2", name: "secondary", type: "string" },
+          {
+            id: "ui-2-7-3",
+            name: "addresses",
+            type: "object",
+            children: [
+              {
+                id: "ui-2-7-3-1",
+                name: "home",
+                type: "object",
+                children: [
+                  { id: "ui-2-7-3-1-1", name: "street", type: "string" },
+                  { id: "ui-2-7-3-1-2", name: "city", type: "string" },
+                  { id: "ui-2-7-3-1-3", name: "state", type: "string" },
+                ],
+              },
+              {
+                id: "ui-2-7-3-2",
+                name: "office",
+                type: "object",
+                children: [
+                  { id: "ui-2-7-3-2-1", name: "street", type: "string" },
+                  { id: "ui-2-7-3-2-2", name: "city", type: "string" },
+                ],
+              },
+            ],
+          },
         ],
       },
     ],
   },
+
   {
-    id: "src-3",
-    name: "Setup & Infrastructure",
-    type: "category",
+    id: "ui-3",
+    name: "ClaimRequest",
+    type: "object",
     children: [
+      { id: "ui-3-1", name: "claimId", type: "string" },
+      { id: "ui-3-2", name: "policyNumber", type: "string" },
       {
-        id: "src-3-1",
-        name: "Fixture Setup",
-        type: "task",
+        id: "ui-3-3",
+        name: "incident",
+        type: "object",
         children: [
-          { id: "src-3-1-1", name: "Test Data", type: "subtask" },
-          { id: "src-3-1-2", name: "Environment Config", type: "subtask" },
+          { id: "ui-3-3-1", name: "date", type: "date" },
+          { id: "ui-3-3-2", name: "type", type: "string" },
+          {
+            id: "ui-3-3-3",
+            name: "location",
+            type: "object",
+            children: [
+              { id: "ui-3-3-3-1", name: "address", type: "string" },
+              { id: "ui-3-3-3-2", name: "city", type: "string" },
+              {
+                id: "ui-3-3-3-3",
+                name: "hospital",
+                type: "object",
+                children: [
+                  { id: "ui-3-3-3-3-1", name: "name", type: "string" },
+                  { id: "ui-3-3-3-3-2", name: "registrationNo", type: "string" },
+                  {
+                    id: "ui-3-3-3-3-3",
+                    name: "details",
+                    type: "object",
+                    children: [
+                      { id: "ui-3-3-3-3-3-1", name: "department", type: "string" },
+                      { id: "ui-3-3-3-3-3-2", name: "ward", type: "string" },
+                      { id: "ui-3-3-3-3-3-3", name: "bedNumber", type: "string" },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "ui-3-4",
+        name: "claimAmount",
+        type: "object",
+        children: [
+          { id: "ui-3-4-1", name: "claimed", type: "decimal" },
+          { id: "ui-3-4-2", name: "approved", type: "decimal" },
+          {
+            id: "ui-3-4-3",
+            name: "breakdown",
+            type: "object",
+            children: [
+              {
+                id: "ui-3-4-3-1",
+                name: "medical",
+                type: "object",
+                children: [
+                  { id: "ui-3-4-3-1-1", name: "consultation", type: "decimal" },
+                  { id: "ui-3-4-3-1-2", name: "procedures", type: "decimal" },
+                  { id: "ui-3-4-3-1-3", name: "medications", type: "decimal" },
+                ],
+              },
+              {
+                id: "ui-3-4-3-2",
+                name: "noncovered",
+                type: "object",
+                children: [
+                  { id: "ui-3-4-3-2-1", name: "reason", type: "string" },
+                  { id: "ui-3-4-3-2-2", name: "amount", type: "decimal" },
+                ],
+              },
+            ],
+          },
         ],
       },
     ],
   },
+
   {
-    id: "src-4",
-    name: "Marketing & Sales",
-    type: "category",
+    id: "ui-4",
+    name: "PaymentRequest",
+    type: "object",
     children: [
+      { id: "ui-4-1", name: "paymentId", type: "string" },
+      { id: "ui-4-2", name: "policyNumber", type: "string" },
       {
-        id: "src-4-1",
-        name: "Campaign Rollout",
-        type: "task",
+        id: "ui-4-3",
+        name: "transaction",
+        type: "object",
         children: [
-          { id: "src-4-1-1", name: "Social Media", type: "subtask" },
-          { id: "src-4-1-2", name: "Email Campaign", type: "subtask" },
-          { id: "src-4-1-3", name: "Launch Event", type: "subtask" },
+          { id: "ui-4-3-1", name: "date", type: "date" },
+          { id: "ui-4-3-2", name: "amount", type: "decimal" },
+          {
+            id: "ui-4-3-3",
+            name: "details",
+            type: "object",
+            children: [
+              { id: "ui-4-3-3-1", name: "mode", type: "string" },
+              { id: "ui-4-3-3-2", name: "reference", type: "string" },
+              {
+                id: "ui-4-3-3-3",
+                name: "bankInfo",
+                type: "object",
+                children: [
+                  { id: "ui-4-3-3-3-1", name: "bankName", type: "string" },
+                  { id: "ui-4-3-3-3-2", name: "accountNumber", type: "string" },
+                  { id: "ui-4-3-3-3-3", name: "ifsc", type: "string" },
+                  {
+                    id: "ui-4-3-3-3-4",
+                    name: "confirmation",
+                    type: "object",
+                    children: [
+                      { id: "ui-4-3-3-3-4-1", name: "utrnumber", type: "string" },
+                      { id: "ui-4-3-3-3-4-2", name: "confirmationDate", type: "date" },
+                      { id: "ui-4-3-3-3-4-3", name: "status", type: "string" },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
         ],
       },
     ],
   },
 ];
 
-const SAMPLE_TARGETS = [
-  {
-    id: "tgt-1",
-    name: "Development Tasks",
-    type: "category",
-    children: [
-      {
-        id: "tgt-1-1",
-        name: "Developer Task",
-        type: "task",
-        children: [
-          { id: "tgt-1-1-1", name: "Code Review", type: "subtask" },
-          { id: "tgt-1-1-2", name: "Implementation", type: "subtask" },
-          { id: "tgt-1-1-3", name: "Testing", type: "subtask" },
-        ],
-      },
-      {
-        id: "tgt-1-2",
-        name: "Design Review",
-        type: "task",
-        children: [
-          { id: "tgt-1-2-1", name: "UI Review", type: "subtask" },
-          { id: "tgt-1-2-2", name: "UX Feedback", type: "subtask" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "tgt-2",
-    name: "QA & Review",
-    type: "category",
-    children: [
-      {
-        id: "tgt-2-1",
-        name: "QA Review",
-        type: "task",
-        children: [
-          { id: "tgt-2-1-1", name: "Test Plan", type: "subtask" },
-          { id: "tgt-2-1-2", name: "Test Execution", type: "subtask" },
-          { id: "tgt-2-1-3", name: "Bug Report", type: "subtask" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "tgt-3",
-    name: "Approvals",
-    type: "category",
-    children: [
-      {
-        id: "tgt-3-1",
-        name: "Marketer Request",
-        type: "task",
-        children: [
-          { id: "tgt-3-1-1", name: "Copy Approval", type: "subtask" },
-          { id: "tgt-3-1-2", name: "Asset Approval", type: "subtask" },
-        ],
-      },
-      {
-        id: "tgt-3-2",
-        name: "Client Approval",
-        type: "task",
-        children: [
-          { id: "tgt-3-2-1", name: "Stakeholder Sign-off", type: "subtask" },
-          { id: "tgt-3-2-2", name: "Legal Review", type: "subtask" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "tgt-4",
-    name: "Documentation",
-    type: "category",
-    children: [
-      {
-        id: "tgt-4-1",
-        name: "Technical Documentation",
-        type: "task",
-        children: [
-          { id: "tgt-4-1-1", name: "API Docs", type: "subtask" },
-          { id: "tgt-4-1-2", name: "User Guide", type: "subtask" },
-        ],
-      },
-    ],
-  },
-];
+// Generate SAMPLE_TARGETS from COBOL copybook XML
+const SAMPLE_TARGETS = generateSampleTargetsFromCopybook(COMBSTSI_SAMPLE);
 
 export default function TagMappingModal({ open, onClose, onSave }) {
   const [mappings, setMappings] = useState([
@@ -424,10 +523,17 @@ export default function TagMappingModal({ open, onClose, onSave }) {
 
   // Expand/collapse state for tree nodes
   const [expandedSourceNodes, setExpandedSourceNodes] = useState(
-    new Set(["src-1", "src-2", "src-3", "src-4"])
+    new Set([
+      "ui-1", "ui-1-5", "ui-1-5-4", "ui-1-5-4-3", "ui-1-6", "ui-1-6-3", "ui-1-6-3-3",
+      "ui-2", "ui-2-6", "ui-2-6-3", "ui-2-6-3-4", "ui-2-7", "ui-2-7-3", "ui-2-7-3-1", "ui-2-7-3-2",
+      "ui-3", "ui-3-3", "ui-3-3-3", "ui-3-3-3-3", "ui-3-3-3-3-3", "ui-3-4", "ui-3-4-3", "ui-3-4-3-1", "ui-3-4-3-2",
+      "ui-4", "ui-4-3", "ui-4-3-3", "ui-4-3-3-3", "ui-4-3-3-3-4"
+    ])
   );
   const [expandedTargetNodes, setExpandedTargetNodes] = useState(
-    new Set(["tgt-1", "tgt-2", "tgt-3", "tgt-4"])
+    new Set([
+      "cb-1", "cb-1-1", "cb-1-2", "cb-1-2-1"
+    ])
   );
 
   const flattenedSources = flattenTree(SAMPLE_SOURCES, sourceSearch);
@@ -477,6 +583,8 @@ export default function TagMappingModal({ open, onClose, onSave }) {
   const handleDragStart = (e, item, type) => {
     setDraggedItem({ ...item, type });
     e.dataTransfer.effectAllowed = "copy";
+    // Set data to make drag-and-drop more reliable across browsers
+    e.dataTransfer.setData("application/json", JSON.stringify({ ...item, type }));
   };
 
   const handleDragEnd = () => {
@@ -709,9 +817,21 @@ export default function TagMappingModal({ open, onClose, onSave }) {
                     {/* Source Display / Selector */}
                     <Box
                       sx={{ flex: 1 }}
-                      onDragOver={(e) => handleDragOver(e, mapping.id)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, mapping.id, "source")}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDragOver(e, mapping.id);
+                      }}
+                      onDragLeave={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDragLeave();
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDrop(e, mapping.id, "source");
+                      }}
                     >
                       {mapping.sourceId ? (
                         <Paper
@@ -755,58 +875,70 @@ export default function TagMappingModal({ open, onClose, onSave }) {
                           </Tooltip>
                         </Paper>
                       ) : (
-                        <FormControl fullWidth size="small">
-                          <Select
-                            value={mapping.sourceId}
-                            onChange={(e) =>
-                              handleMappingChange(
-                                mapping.id,
-                                "sourceId",
-                                e.target.value
-                              )
-                            }
-                            displayEmpty
-                            sx={{
-                              bgcolor: "white",
-                            }}
-                          >
-                            <MenuItem value="" disabled>
-                              <Typography
-                                color="text.secondary"
-                                fontSize="0.875rem"
-                              >
-                                Select a tag or drag it here
-                              </Typography>
-                            </MenuItem>
-                            {flattenedSources.map((source) => (
-                              <MenuItem key={source.id} value={source.id}>
-                                <Box
-                                  sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 1,
-                                  }}
+                        <Box
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDrop(e, mapping.id, "source");
+                          }}
+                        >
+                          <FormControl fullWidth size="small">
+                            <Select
+                              value={mapping.sourceId}
+                              onChange={(e) =>
+                                handleMappingChange(
+                                  mapping.id,
+                                  "sourceId",
+                                  e.target.value
+                                )
+                              }
+                              displayEmpty
+                              sx={{
+                                bgcolor: "white",
+                              }}
+                            >
+                              <MenuItem value="" disabled>
+                                <Typography
+                                  color="text.secondary"
+                                  fontSize="0.875rem"
                                 >
+                                  Select a tag or drag it here
+                                </Typography>
+                              </MenuItem>
+                              {flattenedSources.map((source) => (
+                                <MenuItem key={source.id} value={source.id}>
                                   <Box
-                                    sx={{ ml: `${source.depth * 12}px` }}
-                                  />
-                                  {source.name}
-                                  {source.type !== "category" && (
-                                    <Chip
-                                      label={source.type}
-                                      size="small"
-                                      sx={{
-                                        height: 18,
-                                        fontSize: "0.65rem",
-                                        ml: 1,
-                                      }}
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 1,
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{ ml: `${source.depth * 12}px` }}
                                     />
-                                  )}
+                                    {source.name}
+                                    {source.type !== "category" && (
+                                      <Chip
+                                        label={source.type}
+                                        size="small"
+                                        sx={{
+                                          height: 18,
+                                          fontSize: "0.65rem",
+                                          ml: 1,
+                                        }}
+                                      />
+                                    )}
                                 </Box>
                               </MenuItem>
                             ))}
                           </Select>
                         </FormControl>
+                      </Box>
                       )}
                     </Box>
 
@@ -835,9 +967,21 @@ export default function TagMappingModal({ open, onClose, onSave }) {
                     {/* Target Display / Selector */}
                     <Box
                       sx={{ flex: 1 }}
-                      onDragOver={(e) => handleDragOver(e, mapping.id)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, mapping.id, "target")}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDragOver(e, mapping.id);
+                      }}
+                      onDragLeave={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDragLeave();
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDrop(e, mapping.id, "target");
+                      }}
                     >
                       {mapping.targetId ? (
                         <Paper
@@ -881,58 +1025,70 @@ export default function TagMappingModal({ open, onClose, onSave }) {
                           </Tooltip>
                         </Paper>
                       ) : (
-                        <FormControl fullWidth size="small">
-                          <Select
-                            value={mapping.targetId}
-                            onChange={(e) =>
-                              handleMappingChange(
-                                mapping.id,
-                                "targetId",
-                                e.target.value
-                              )
-                            }
-                            displayEmpty
-                            sx={{
-                              bgcolor: "white",
-                            }}
-                          >
-                            <MenuItem value="" disabled>
-                              <Typography
-                                color="text.secondary"
-                                fontSize="0.875rem"
-                              >
-                                Select a label or drag it here
-                              </Typography>
-                            </MenuItem>
-                            {flattenedTargets.map((target) => (
-                              <MenuItem key={target.id} value={target.id}>
-                                <Box
-                                  sx={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 1,
-                                  }}
+                        <Box
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDrop(e, mapping.id, "target");
+                          }}
+                        >
+                          <FormControl fullWidth size="small">
+                            <Select
+                              value={mapping.targetId}
+                              onChange={(e) =>
+                                handleMappingChange(
+                                  mapping.id,
+                                  "targetId",
+                                  e.target.value
+                                )
+                              }
+                              displayEmpty
+                              sx={{
+                                bgcolor: "white",
+                              }}
+                            >
+                              <MenuItem value="" disabled>
+                                <Typography
+                                  color="text.secondary"
+                                  fontSize="0.875rem"
                                 >
+                                  Select a label or drag it here
+                                </Typography>
+                              </MenuItem>
+                              {flattenedTargets.map((target) => (
+                                <MenuItem key={target.id} value={target.id}>
                                   <Box
-                                    sx={{ ml: `${target.depth * 12}px` }}
-                                  />
-                                  {target.name}
-                                  {target.type !== "category" && (
-                                    <Chip
-                                      label={target.type}
-                                      size="small"
-                                      sx={{
-                                        height: 18,
-                                        fontSize: "0.65rem",
-                                        ml: 1,
-                                      }}
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 1,
+                                    }}
+                                  >
+                                    <Box
+                                      sx={{ ml: `${target.depth * 12}px` }}
                                     />
-                                  )}
+                                    {target.name}
+                                    {target.type !== "category" && (
+                                      <Chip
+                                        label={target.type}
+                                        size="small"
+                                        sx={{
+                                          height: 18,
+                                          fontSize: "0.65rem",
+                                          ml: 1,
+                                        }}
+                                      />
+                                    )}
                                 </Box>
                               </MenuItem>
                             ))}
                           </Select>
                         </FormControl>
+                      </Box>
                       )}
                     </Box>
 
