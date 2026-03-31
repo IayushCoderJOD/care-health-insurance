@@ -1,11 +1,14 @@
 // components/ExecuteButton.jsx
-import React, { useState } from "react";
+import React, { useState, useCallback, memo } from "react";
 import { Button } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import WorkflowExecutor from "./WorkflowExecutor";
 
-export default function ExecuteButton() {
+const ExecuteButton = memo(function ExecuteButton() {
   const [open, setOpen] = useState(false);
+
+  const handleOpen = useCallback(() => setOpen(true), []);
+  const handleClose = useCallback(() => setOpen(false), []);
 
   return (
     <>
@@ -13,7 +16,7 @@ export default function ExecuteButton() {
         variant="contained"
         color="primary"
         startIcon={<PlayArrowIcon />}
-        onClick={() => setOpen(true)}
+        onClick={handleOpen}
         sx={{
           bgcolor: "#3b82f6",
           "&:hover": { bgcolor: "#2563eb" },
@@ -22,7 +25,9 @@ export default function ExecuteButton() {
         Execute Workflow
       </Button>
 
-      <WorkflowExecutor open={open} onClose={() => setOpen(false)} />
+      <WorkflowExecutor open={open} onClose={handleClose} />
     </>
   );
-}
+});
+
+export default ExecuteButton;

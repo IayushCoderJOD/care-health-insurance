@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, memo, useCallback } from "react";
 import PropTypes from "prop-types";
 import { Handle, Position } from "reactflow";
 import useWorkflowStore from "../store/workflowStore";
@@ -45,7 +45,7 @@ const modalStyle = {
   overflow: "auto",
 };
 
-export default function ConnectorNode({ id, data, selected }) {
+const ConnectorNode = memo(function ConnectorNode({ id, data, selected }) {
   const setSelectedNodeId = useWorkflowStore((state) => state.setSelectedNodeId);
   const editingNodeId = useWorkflowStore((state) => state.editingNodeId);
   const setEditingNodeId = useWorkflowStore((state) => state.setEditingNodeId);
@@ -58,40 +58,40 @@ export default function ConnectorNode({ id, data, selected }) {
   const [configString, setConfigString] = useState("{}");
   const [operation, setOperation] = useState("findAll");
   const [backendUrl, setBackendUrl] = useState("http://localhost:8080");
+  const [formData, setFormData] = useState({ name: data.name || "" });
 
   const isOpen = editingNodeId === id;
 
   // helper to open modal and initialize form state
-  const openModal = () => {
+  const openModal = useCallback(() => {
     const cfg = data.config || {};
     setConfigString(JSON.stringify(cfg, null, 2));
     setOperation(cfg.operation || "findAll");
     setBackendUrl(cfg.backendUrl || "http://localhost:8080");
     setFormData({ name: data.name || "" });
     setEditingNodeId(id);
-  };
+  }, [data, id, setEditingNodeId]);
 
-
-  const handleClick = (e) => {
+  const handleClick = useCallback((e) => {
     e.stopPropagation();
     setSelectedNodeId(id);
-  };
+  }, [id, setSelectedNodeId]);
 
-  const handleDoubleClick = (e) => {
+  const handleDoubleClick = useCallback((e) => {
     e.stopPropagation();
     openModal();
-  };
+  }, [openModal]);
 
-  const handleSettingsClick = (e) => {
+  const handleSettingsClick = useCallback((e) => {
     e.stopPropagation();
     openModal();
-  };
+  }, [openModal]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setEditingNodeId(null);
-  };
+  }, [setEditingNodeId]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     let parsed;
     try {
       parsed = JSON.parse(configString || "{}");
@@ -111,22 +111,18 @@ export default function ConnectorNode({ id, data, selected }) {
       config: finalConfig,
     });
     handleClose();
-  };
+  }, [configString, operation, backendUrl, formData.name, id, updateNode, handleClose]);
 
-
-  // keep some local name for display
-  const [formData, setFormData] = useState({ name: data.name || "" });
-
-  const handleNameChange = (e) => {
+  const handleNameChange = useCallback((e) => {
     setFormData({ ...formData, name: e.target.value });
-  };
+  }, [formData]);
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     if (globalThis.confirm("Delete this connector node?")) {
       deleteNode(id);
       handleClose();
     }
-  };
+  }, [id, deleteNode, handleClose]);
 
   let borderColor;
   if (selected) {
@@ -328,7 +324,7 @@ export default function ConnectorNode({ id, data, selected }) {
       </Modal>
     </>
   );
-}
+});
 
 // prop validation to satisfy linter
 ConnectorNode.propTypes = {
@@ -344,3 +340,5 @@ ConnectorNode.propTypes = {
 ConnectorNode.defaultProps = {
   selected: false,
 };
+
+export default ConnectorNode;

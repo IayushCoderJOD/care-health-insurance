@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Box,
@@ -18,7 +18,8 @@ import {
   ArrowBack as ArrowBackIcon,
   Save as SaveIcon,
 } from "@mui/icons-material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
+import { defaultTheme } from "./theme/theme";
 
 import ApiListPanel from "./components/ApiListPanel";
 import WorkflowCanvas from "./components/WorkflowCanvas";
@@ -29,23 +30,6 @@ import sampleApi from "./constants/sampleApi.json";
 import { extractEndpoints } from "./utils/openApiParser";
 import TagMappingModal from "./utils/TagMappingModal";
 import {  Target } from "./constants/constants";
-
-const theme = createTheme({
-  palette: {
-    mode: "light",
-    primary: {
-      main: "#1976d2",
-    },
-    background: {
-      default: "#f5f5f5",
-      paper: "#ffffff",
-    },
-    text: {
-      primary: "#000000",
-      secondary: "#666666",
-    },
-  },
-});
 
 const CreateNewWorkflow = () => {
   const navigate = useNavigate();
@@ -64,22 +48,20 @@ const CreateNewWorkflow = () => {
   console.log("Workflow Name:", loadWorkflow);
 
   const [toggleMenu, setToggleMenu] = useState(true);
-  const [apiLoaded, setApiLoaded] = useState(false);
-  console.log("setApiLoaded",setApiLoaded);
+  
+  // Load API spec once
   useEffect(() => {
-    if (!apiLoaded) {
-      try {
-        const extracted = extractEndpoints(sampleApi);
-        useWorkflowStore.setState({
-          openApiSpec: sampleApi,
-          endpoints: extracted,
-        });
-        
-      } catch (err) {
-        console.error("Failed to load sample API:", err);
-      }
+    // Load sample API spec into store
+    try {
+      const extracted = extractEndpoints(sampleApi);
+      useWorkflowStore.setState({
+        openApiSpec: sampleApi,
+        endpoints: extracted,
+      });
+    } catch (err) {
+      console.error("Failed to load sample API:", err);
     }
-  }, [apiLoaded]);
+  }, []);
 
   useEffect(() => {
     if (editId) {
@@ -90,23 +72,24 @@ const CreateNewWorkflow = () => {
     } else {
       resetWorkflow();
     }
-
-    return () => {
-    };
   }, [editId, loadWorkflow, resetWorkflow]);
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     navigate("/");
-  };
+  }, [navigate]);
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     const saved = saveWorkflow();
     console.log("Workflow saved:", saved);
     alert("Workflow saved successfully!");
-  };
+  }, [saveWorkflow]);
+
+  const handleToggleMenu = useCallback(() => {
+    setToggleMenu((prev) => !prev);
+  }, []);
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={defaultTheme}>
       <Box
         sx={{
           height: "100vh",
@@ -132,7 +115,7 @@ const CreateNewWorkflow = () => {
 
               <IconButton
                 color="inherit"
-                onClick={() => setToggleMenu((prev) => !prev)}
+                onClick={handleToggleMenu}
                 sx={{
                   backgroundColor: "rgba(255,255,255,0.1)",
                   "&:hover": {

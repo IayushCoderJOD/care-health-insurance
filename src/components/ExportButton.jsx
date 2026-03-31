@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, memo, useMemo } from "react";
 import {
   Button,
   Menu,
@@ -19,7 +19,7 @@ import { downloadYAML } from "../utils/yamlExporter";
 import { workflowToCamelYAML } from "../utils/camelYamlExporter";
 import DetailsViewerModal from "../utils/DetailsViewerModal";
 
-export default function ExportButton() {
+const ExportButton = memo(function ExportButton() {
   const nodes = useWorkflowStore((state) => state.nodes);
   const edges = useWorkflowStore((state) => state.edges);
   
@@ -33,17 +33,17 @@ export default function ExportButton() {
   const [modalTitle, setModalTitle] = useState("");
   const [modalType, setModalType] = useState("info");
 
-  const workflow = { nodes, edges };
+  const workflow = useMemo(() => ({ nodes, edges }), [nodes, edges]);
 
-  const handleClick = (event) => {
+  const handleClick = useCallback((event) => {
     setAnchorEl(event.currentTarget);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setAnchorEl(null);
-  };
+  }, []);
 
-  const handleExportYAML = () => {
+  const handleExportYAML = useCallback(() => {
     try {
       const yamlContent = workflowToCamelYAML(workflow);
       downloadYAML(yamlContent);
@@ -51,9 +51,9 @@ export default function ExportButton() {
     } catch (error) {
       alert("Failed to export YAML: " + error.message);
     }
-  };
+  }, [workflow, handleClose]);
 
-  const handleShowYAML = () => {
+  const handleShowYAML = useCallback(() => {
     try {
       const yamlContent = workflowToCamelYAML(workflow);
       setModalTitle("Workflow YAML");
@@ -64,9 +64,9 @@ export default function ExportButton() {
     } catch (error) {
       alert("Failed to generate YAML: " + error.message);
     }
-  };
+  }, [workflow, handleClose]);
 
-  const handleShowJSON = () => {
+  const handleShowJSON = useCallback(() => {
     try {
       setModalTitle("Workflow JSON");
       setModalData(workflow);
@@ -76,12 +76,12 @@ export default function ExportButton() {
     } catch (error) {
       alert("Failed to generate JSON: " + error.message);
     }
-  };
+  }, [workflow, handleClose]);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setModalOpen(false);
     setModalData(null);
-  };
+  }, []);
 
   return (
     <>
@@ -171,4 +171,6 @@ export default function ExportButton() {
       />
     </>
   );
-}
+});
+
+export default ExportButton;

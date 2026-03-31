@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, memo, useCallback } from "react";
 import { parseOpenAPI, extractEndpoints, extractConnectors } from "../utils/openApiParser";
 import useWorkflowStore from "../store/workflowStore";
 
-export default function OpenApiUploader() {
+const OpenApiUploader = memo(function OpenApiUploader() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [input, setInput] = useState("");
@@ -12,7 +12,17 @@ export default function OpenApiUploader() {
   const setConnectors = useWorkflowStore((state) => state.setConnectors);
   const reset = useWorkflowStore((state) => state.reset);
 
-  const handleFileUpload = async (event) => {
+  const processSpec = useCallback(async (spec) => {
+    const endpoints = extractEndpoints(spec);
+    const connectors = extractConnectors ? extractConnectors(spec) : [];
+
+    setOpenApiSpec(spec);
+    setEndpoints(endpoints);
+    if (connectors.length > 0) setConnectors(connectors);
+    setInput("");
+  }, [setOpenApiSpec, setEndpoints, setConnectors]);
+
+  const handleFileUpload = useCallback(async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -21,21 +31,15 @@ export default function OpenApiUploader() {
 
     try {
       const spec = await parseOpenAPI(file);
-      const endpoints = extractEndpoints(spec);
-      const connectors = extractConnectors ? extractConnectors(spec) : [];
-
-      setOpenApiSpec(spec);
-      setEndpoints(endpoints);
-      if (connectors.length > 0) setConnectors(connectors);
-      setInput("");
+      await processSpec(spec);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [processSpec]);
 
-  const handlePasteOrUrl = async () => {
+  const handlePasteOrUrl = useCallback(async () => {
     if (!input.trim()) {
       setError("Please enter JSON, YAML, or a URL");
       return;
@@ -46,25 +50,19 @@ export default function OpenApiUploader() {
 
     try {
       const spec = await parseOpenAPI(input);
-      const endpoints = extractEndpoints(spec);
-      const connectors = extractConnectors ? extractConnectors(spec) : [];
-
-      setOpenApiSpec(spec);
-      setEndpoints(endpoints);
-      if (connectors.length > 0) setConnectors(connectors);
-      setInput("");
+      await processSpec(spec);
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [input, processSpec]);
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = useCallback((e) => {
     if (e.ctrlKey && e.key === "Enter") {
       handlePasteOrUrl();
     }
-  };
+  }, [handlePasteOrUrl]);
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
@@ -145,4 +143,6 @@ export default function OpenApiUploader() {
       </div>
     </div>
   );
-}
+});
+
+export default OpenApiUploader;

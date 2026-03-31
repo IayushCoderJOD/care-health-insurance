@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -23,25 +23,9 @@ import {
   AccountTree as WorkflowIcon,
   Warning as WarningIcon,
 } from "@mui/icons-material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider } from "@mui/material/styles";
+import { defaultTheme } from "./theme/theme";
 import HealthDatagrid from "./utils/HealthDatagrid";
-
-const theme = createTheme({
-  palette: {
-    mode: "light",
-    primary: {
-      main: "#1976d2",
-    },
-    background: {
-      default: "#f5f5f5",
-      paper: "#ffffff",
-    },
-    text: {
-      primary: "#000000",
-      secondary: "#666666",
-    },
-  },
-});
 
 // Helper function to format timestamp
 const formatTimestamp = (date) => {
@@ -158,11 +142,11 @@ function Dashboard() {
     return workflows.slice(page * pageSize, page * pageSize + pageSize);
   }, [workflows, page, pageSize]);
 
-  const handleCreateNew = () => {
+  const handleCreateNew = useCallback(() => {
     navigate("/create-workflow");
-  };
+  }, [navigate]);
 
-  const handleEdit = (id) => {
+  const handleEdit = useCallback((id) => {
     setWorkflows((prevWorkflows) =>
       prevWorkflows.map((workflow) => {
         if (workflow.id === id) {
@@ -176,22 +160,22 @@ function Dashboard() {
       })
     );
     navigate(`/create-workflow?edit=${id}`);
-  };
+  }, [navigate]);
 
   // Open delete confirmation modal
-  const handleDeleteClick = (workflow) => {
+  const handleDeleteClick = useCallback((workflow) => {
     setWorkflowToDelete(workflow);
     setDeleteModalOpen(true);
-  };
+  }, []);
 
   // Close delete confirmation modal
-  const handleDeleteCancel = () => {
+  const handleDeleteCancel = useCallback(() => {
     setDeleteModalOpen(false);
     setWorkflowToDelete(null);
-  };
+  }, []);
 
   // Confirm and execute delete
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = useCallback(() => {
     if (workflowToDelete) {
       setWorkflows((prevWorkflows) =>
         prevWorkflows.filter((workflow) => workflow.id !== workflowToDelete.id)
@@ -199,18 +183,18 @@ function Dashboard() {
     }
     setDeleteModalOpen(false);
     setWorkflowToDelete(null);
-  };
+  }, [workflowToDelete]);
 
-  const handlePageChange = (event, newPage) => {
+  const handlePageChange = useCallback((event, newPage) => {
     setPage(newPage);
-  };
+  }, []);
 
-  const handlePageSizeChange = (event) => {
+  const handlePageSizeChange = useCallback((event) => {
     setPageSize(parseInt(event.target.value, 10));
     setPage(0);
-  };
+  }, []);
 
-  const getStatusColor = (status) => {
+  const getStatusColor = useCallback((status) => {
     switch (status) {
       case "Active":
         return "success";
@@ -221,20 +205,19 @@ function Dashboard() {
       default:
         return "default";
     }
-  };
-  console.log(getStatusColor("Active")); // Should return "success"
+  }, []);
 
-  const getLifecycleColor = (lifecycle) => {
+  const getLifecycleColor = useCallback((lifecycle) => {
     return LIFECYCLE_STAGES[lifecycle]?.color || "default";
-  };
+  }, []);
 
   // Helper to get user display name from UID
-  const getUserDisplayName = (uid) => {
+  const getUserDisplayName = useCallback((uid) => {
     if (!uid) return "Unknown";
     return sampleUsers[uid] || uid;
-  };
+  }, []);
 
-  const columns = [
+  const columns = useMemo(() => [
     {
       field: "id",
       headerName: "Workflow ID",
@@ -386,10 +369,10 @@ function Dashboard() {
         );
       },
     },
-  ];
+  ], [getLifecycleColor, getUserDisplayName, handleEdit, handleDeleteClick]);
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={defaultTheme}>
       <Box
         sx={{
           minHeight: "100vh",

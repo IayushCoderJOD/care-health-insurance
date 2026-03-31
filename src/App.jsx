@@ -1,14 +1,26 @@
 import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import "./App.css";
-import Dashboard from "./Dashboard.jsx";
-import CreateNewWorkflow from "./CreateNewWorkflow";
+
+// Lazy load route components for better initial load performance
+const Dashboard = lazy(() => import("./Dashboard.jsx"));
+const CreateNewWorkflow = lazy(() => import("./CreateNewWorkflow"));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", color: "#666" }}>
+    Loading...
+  </div>
+);
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/create-workflow" element={<CreateNewWorkflow />} />
-    </Routes>
+    <Suspense fallback={<LoadingFallback />}>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/create-workflow" element={<CreateNewWorkflow />} />
+      </Routes>
+    </Suspense>
   );
 }
 
