@@ -618,7 +618,13 @@ export default function TagMappingModal({ open, onClose, onSave }) {
 
   const handleSave = () => {
     const validMappings = mappings.filter((m) => m.sourceId && m.targetId);
-    onSave?.(validMappings);
+    
+    // Transform to JSON structure
+    const mappingJson = transformMappingsToJson(validMappings);
+    
+    console.log("Mapping JSON:", mappingJson);
+    
+    onSave?.(mappingJson);
     onClose();
   };
 
@@ -640,6 +646,32 @@ export default function TagMappingModal({ open, onClose, onSave }) {
       return null;
     };
     return findName(SAMPLE_SOURCES) || findName(SAMPLE_TARGETS);
+  };
+
+  // Transform mappings into the JSON structure for backend
+  const transformMappingsToJson = (mappingsData) => {
+    const requestMap = {};
+    const responseMap = {};
+    
+    mappingsData.forEach((mapping) => {
+      const sourceName = getItemName(mapping.sourceId);
+      const targetName = getItemName(mapping.targetId);
+      
+      if (sourceName && targetName) {
+        requestMap[sourceName] = targetName;
+      }
+    });
+
+    return {
+      metaData: {
+        copyBook: "",
+        mapType: "",
+        bpmName: "",
+        serviceName: "",
+      },
+      requestMap: requestMap,
+      responseMap:responseMap,
+    };
   };
 
   return (
