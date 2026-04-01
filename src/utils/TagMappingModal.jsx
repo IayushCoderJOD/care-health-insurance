@@ -38,7 +38,7 @@ const modalStyle = {
   borderRadius: 3,
   boxShadow: 24,
   outline: "none",
-  overflow: "hidden",
+  overflow: "scroll",
 };
 
 // Helper function to flatten tree and filter items
@@ -510,13 +510,58 @@ const SAMPLE_SOURCES = [
 // Generate SAMPLE_TARGETS from COBOL copybook XML
 const SAMPLE_TARGETS = generateSampleTargetsFromCopybook(COMBSTSI_SAMPLE);
 
-export default function TagMappingModal({ open, onClose, onSave }) {
+// Sample Response Object similar to SAMPLE_SOURCES
+const SAMPLE_RESPONSES = [
+  {
+    id: "resp-1",
+    name: "PolicyResponse",
+    type: "object",
+    children: [
+      { id: "resp-1-1", name: "policyId", type: "string" },
+      { id: "resp-1-2", name: "status", type: "string" },
+      { id: "resp-1-3", name: "effectiveDate", type: "date" },
+      {
+        id: "resp-1-4",
+        name: "coverage",
+        type: "object",
+        children: [
+          { id: "resp-1-4-1", name: "type", type: "string" },
+          { id: "resp-1-4-2", name: "limitAmount", type: "decimal" },
+          { id: "resp-1-4-3", name: "premium", type: "decimal" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "resp-2",
+    name: "ClaimResponse",
+    type: "object",
+    children: [
+      { id: "resp-2-1", name: "claimId", type: "string" },
+      { id: "resp-2-2", name: "approvalStatus", type: "string" },
+      {
+        id: "resp-2-3",
+        name: "settlement",
+        type: "object",
+        children: [
+          { id: "resp-2-3-1", name: "approvedAmount", type: "decimal" },
+          { id: "resp-2-3-2", name: "settlementDate", type: "date" },
+          { id: "resp-2-3-3", name: "paymentMode", type: "string" },
+        ],
+      },
+    ],
+  },
+];
+
+export default function TagMappingModal({ data, open, onClose, onSave }) {
   const [mappings, setMappings] = useState([
     { id: "map-1", sourceId: "", targetId: "" },
   ]);
 
+
   const [sourceSearch, setSourceSearch] = useState("");
   const [targetSearch, setTargetSearch] = useState("");
+  const [mappingType, setMappingType] = useState("request"); // "request" or "response"
 
   const [draggedItem, setDraggedItem] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
@@ -536,8 +581,17 @@ export default function TagMappingModal({ open, onClose, onSave }) {
     ])
   );
 
-  const flattenedSources = flattenTree(SAMPLE_SOURCES, sourceSearch);
-  const flattenedTargets = flattenTree(SAMPLE_TARGETS, targetSearch);
+  // Dynamically set source and target based on mapping type
+  const getSourceData = () => {
+    return mappingType === "request" ? SAMPLE_SOURCES : SAMPLE_TARGETS;
+  };
+
+  const getTargetData = () => {
+    return mappingType === "request" ? SAMPLE_TARGETS : SAMPLE_RESPONSES;
+  };
+
+  const flattenedSources = flattenTree(getSourceData(), sourceSearch);
+  const flattenedTargets = flattenTree(getTargetData(), targetSearch);
 
   const toggleSourceNodeExpand = useCallback((nodeId) => {
     setExpandedSourceNodes((prev) => {
@@ -645,32 +699,38 @@ export default function TagMappingModal({ open, onClose, onSave }) {
       }
       return null;
     };
-    return findName(SAMPLE_SOURCES) || findName(SAMPLE_TARGETS);
+    return (
+      findName(getSourceData()) || 
+      findName(getTargetData()) || 
+      findName(SAMPLE_SOURCES) || 
+      findName(SAMPLE_TARGETS) || 
+      findName(SAMPLE_RESPONSES)
+    );
   };
 
   // Transform mappings into the JSON structure for backend
   const transformMappingsToJson = (mappingsData) => {
-    const requestMap = {};
-    const responseMap = {};
+    const mappingData = {};
     
     mappingsData.forEach((mapping) => {
       const sourceName = getItemName(mapping.sourceId);
       const targetName = getItemName(mapping.targetId);
       
       if (sourceName && targetName) {
-        requestMap[sourceName] = targetName;
+        mappingData[sourceName] = targetName;
       }
     });
+
+    const mapKey = mappingType === "request" ? "requestMap" : "responseMap";
 
     return {
       metaData: {
         copyBook: "",
-        mapType: "",
+        mapType: mappingType,
         bpmName: "",
-        serviceName: "",
+        serviceName: data?.summary,
       },
-      requestMap: requestMap,
-      responseMap:responseMap,
+      [mapKey]: mappingData,
     };
   };
 
@@ -700,6 +760,27 @@ export default function TagMappingModal({ open, onClose, onSave }) {
               </Typography>
             </Box>
           </Box>
+
+          {/* Mapping Type Selector */}
+          <FormControl size="small" sx={{ minWidth: 150 }}>
+            <Select
+              value={mappingType}
+              onChange={(e) => {
+                setMappingType(e.target.value);
+                setMappings([{ id: "map-1", sourceId: "", targetId: "" }]);
+              }}
+              sx={{
+                bgcolor: "white",
+                "& .MuiOutlinedInput-root": {
+                  borderColor: "#cbd5e1",
+                },
+              }}
+            >
+              <MenuItem value="request">Request Mapping</MenuItem>
+              <MenuItem value="response">Response Mapping</MenuItem>
+            </Select>
+          </FormControl>
+
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
           </IconButton>
@@ -719,7 +800,7 @@ export default function TagMappingModal({ open, onClose, onSave }) {
           >
             <Box sx={{ p: 2, borderBottom: "1px solid #e2e8f0" }}>
               <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                📁 Tags
+                📁 {mappingType === "request" ? "Frontend Tags" : "Copybook Tags"}
               </Typography>
               <TextField
                 size="small"
@@ -740,7 +821,7 @@ export default function TagMappingModal({ open, onClose, onSave }) {
               />
             </Box>
             <Box sx={{ flex: 1, overflow: "auto", p: 1.5 }}>
-              {SAMPLE_SOURCES.map((source) => (
+              {getSourceData().map((source) => (
                 <TreeNode
                   key={source.id}
                   node={source}
@@ -799,7 +880,7 @@ export default function TagMappingModal({ open, onClose, onSave }) {
                 fontWeight={600}
                 sx={{ flex: 1, color: "#64748b" }}
               >
-                SELECT A TAG
+                {mappingType === "request" ? "SELECT FRONTEND TAG" : "SELECT COPYBOOK TAG"}
               </Typography>
               <Box sx={{ width: 60, textAlign: "center" }}>
                 <SyncAltIcon fontSize="small" sx={{ color: "#94a3b8" }} />
@@ -809,7 +890,7 @@ export default function TagMappingModal({ open, onClose, onSave }) {
                 fontWeight={600}
                 sx={{ flex: 1, color: "#64748b", textAlign: "right" }}
               >
-                SELECT A LABEL
+                {mappingType === "request" ? "SELECT COPYBOOK TAG" : "SELECT RESPONSE TAG"}
               </Typography>
             </Box>
 
@@ -1176,7 +1257,7 @@ export default function TagMappingModal({ open, onClose, onSave }) {
           >
             <Box sx={{ p: 2, borderBottom: "1px solid #e2e8f0" }}>
               <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-                🏷️ Labels
+                🏷️ {mappingType === "request" ? "Copybook Tags" : "Response Tags"}
               </Typography>
               <TextField
                 size="small"
@@ -1197,7 +1278,7 @@ export default function TagMappingModal({ open, onClose, onSave }) {
               />
             </Box>
             <Box sx={{ flex: 1, overflow: "auto", p: 1.5 }}>
-              {SAMPLE_TARGETS.map((target) => (
+              {getTargetData().map((target) => (
                 <TreeNode
                   key={target.id}
                   node={target}

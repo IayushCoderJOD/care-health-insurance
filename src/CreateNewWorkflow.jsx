@@ -24,7 +24,7 @@ import { defaultTheme } from "./theme/theme";
 import ApiListPanel from "./components/ApiListPanel";
 import WorkflowCanvas from "./components/WorkflowCanvas";
 import ExportButton from "./components/ExportButton";
-import ExecuteButton from "./components/ExecuteButton";
+// import ExecuteButton from "./components/ExecuteButton";
 import useWorkflowStore from "./store/workflowStore";
 import sampleApi from "./constants/sampleApi.json";
 import { extractEndpoints } from "./utils/openApiParser";
@@ -195,7 +195,7 @@ const CreateNewWorkflow = () => {
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <HeaderDetails endpoints={endpoints} selectedNode={selectedNode} />
 
-              <ExecuteButton />
+              {/* <ExecuteButton /> */}
 
               <Button
                 variant="contained"

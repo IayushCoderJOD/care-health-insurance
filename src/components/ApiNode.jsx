@@ -324,7 +324,6 @@ const NodeContextMenu = ({ open, onClose, onConfigureNode, onTagMapping, anchorE
 };
 
 const ApiNode = ({ id, data, selected }) => {
-  console.log(data.connector || data.endpoint, data, "node-data");
 
   // Store actions
   const setSelectedNodeId = useWorkflowStore(
@@ -831,6 +830,7 @@ const ApiNode = ({ id, data, selected }) => {
      <TagMappingModal
           selectedNode={selectedNode}
           open={isTagMappingOpen}
+          data={data}
           onClose={handleTagMappingClose}
           sources={services}
           targets={Target}
